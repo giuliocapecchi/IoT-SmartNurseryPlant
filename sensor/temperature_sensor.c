@@ -11,6 +11,7 @@
 #include "dev/leds.h"
 #include "os/sys/log.h"
 #include "mqtt-client.h"
+#include "os/dev/leds.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -208,7 +209,7 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
   printf("Temperature MQTT Client\n");
 
   // randomic choice of starting temperature and increment
-  actual_temperature = rand() % (41);
+  actual_temperature = (rand() % 38) + 3 ;
   increment = 3 * ((rand() % 2  == 0) ? -1 : 1);
 
   // Initialize the ClientID as MAC address
@@ -234,8 +235,9 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
 
     if((ev == PROCESS_EVENT_TIMER && data == &periodic_timer) || 
 	      ev == PROCESS_EVENT_POLL){
-			  			  
+			      
 		  if(state==STATE_INIT){
+        leds_on(LEDS_RED);
 			 if(have_connectivity()==true)  
 				 state = STATE_NET_OK;
 		  } 
@@ -270,10 +272,11 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
 
 			  
 		if(state == STATE_SUBSCRIBED){  
-			
-             //publish
-             if(first_sample==1)
-                temperature_sampling();
+        leds_off(LEDS_RED);
+        leds_on(LEDS_GREEN);
+        //publish
+        if(first_sample==1)
+          temperature_sampling();
                
               
 		
@@ -281,6 +284,8 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
 		   LOG_ERR("Disconnected form MQTT broker\n");	
 		   // Recover from error
            state=STATE_INIT;
+           leds_off(LEDS_GREEN);
+           leds_on(LEDS_RED);
 		}
 		
 		etimer_set(&periodic_timer, STATE_MACHINE_PERIODIC);

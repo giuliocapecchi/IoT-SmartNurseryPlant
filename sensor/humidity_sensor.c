@@ -11,6 +11,7 @@
 #include "dev/leds.h"
 #include "os/sys/log.h"
 #include "mqtt-client.h"
+#include "os/dev/leds.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -208,7 +209,7 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
   printf("Humidity MQTT Client\n");
 
   // randomic choice of starting humidity and increment
-  actual_humidity = rand() % (91) + 5;  //need to avoid a negative humidity (measured in percentage) 
+  actual_humidity = (rand() % 91) + 5;  //need to avoid a negative humidity (measured in percentage) 
                                         //and a value higher than 100 also after first update (+ or - 5). 
                                         //We start from a value between 5 and 95
   increment = 5 * ((rand() % 2  == 0) ? -1 : 1);
@@ -238,6 +239,7 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
 	      ev == PROCESS_EVENT_POLL){
 			  			  
 		  if(state==STATE_INIT){
+        leds_on(LEDS_RED);
 			 if(have_connectivity()==true)  
 				 state = STATE_NET_OK;
 		  } 
@@ -272,10 +274,11 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
 
 			  
 		if(state == STATE_SUBSCRIBED){  
-			
-             //publish
-             if(first_sample==1)
-                humidity_sampling();
+			leds_off(LEDS_RED);
+      leds_on(LEDS_GREEN);
+      //publish
+      if(first_sample==1)
+        humidity_sampling();
                
               
 		
@@ -283,6 +286,8 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
 		   LOG_ERR("Disconnected form MQTT broker\n");	
 		   // Recover from error
            state=STATE_INIT;
+           leds_off(LEDS_GREEN);
+           leds_on(LEDS_RED);
 		}
 		
 		etimer_set(&periodic_timer, STATE_MACHINE_PERIODIC);

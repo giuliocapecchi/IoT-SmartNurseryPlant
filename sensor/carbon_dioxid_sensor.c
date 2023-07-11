@@ -11,6 +11,7 @@
 #include "dev/leds.h"
 #include "os/sys/log.h"
 #include "mqtt-client.h"
+#include "os/dev/leds.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -96,8 +97,9 @@ char broker_address[CONFIG_IP_ADDR_STR_LEN];
 // random starting co2 between 0 and 600 ppm
 static uint8_t actual_co2;
 // optimal carbon dioxid value between 180ppm and 400ppm
-static uint8_t lower_bound_co2 = 180;
-static uint8_t upper_bound_co2 = 400;
+// the values are /10 because of uint8_t
+static uint8_t lower_bound_co2 = 18;
+static uint8_t upper_bound_co2 = 40;
 static int increment;
 
 static void co2_sampling(){
@@ -208,8 +210,10 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
   printf("CO2 MQTT Client\n");
 
   // randomic choice of starting co2 and increment
-  actual_co2 = rand() % 600;  
-  increment = 50 * ((rand() % 2  == 0) ? -1 : 1);
+  // value is 60 and not 600 because of uint8_t
+  actual_co2 = (rand() % 55) + 5;  
+  // increment is 5 and not 50 because of uint8_t
+  increment = 5 * ((rand() % 2  == 0) ? -1 : 1);
 
   // Initialize the ClientID as MAC address
   snprintf(client_id, BUFFER_SIZE, "%02x%02x%02x%02x%02x%02x",
@@ -236,6 +240,7 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
 	      ev == PROCESS_EVENT_POLL){
 			  			  
 		  if(state==STATE_INIT){
+        leds_on(LEDS_RED);
 			 if(have_connectivity()==true)  
 				 state = STATE_NET_OK;
 		  } 
@@ -270,10 +275,11 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
 
 			  
 		if(state == STATE_SUBSCRIBED){  
-			
-             //publish
-             if(first_sample==1)
-                co2_sampling();
+			leds_off(LEDS_RED);
+      leds_on(LEDS_GREEN);
+      //publish
+      if(first_sample==1)
+        co2_sampling();
                
               
 		
@@ -281,6 +287,8 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
 		   LOG_ERR("Disconnected form MQTT broker\n");	
 		   // Recover from error
            state=STATE_INIT;
+           leds_off(LEDS_GREEN);
+           leds_on(LEDS_RED);
 		}
 		
 		etimer_set(&periodic_timer, STATE_MACHINE_PERIODIC);
