@@ -1,0 +1,19 @@
+# PASSWORD GRAFANA
+
+username : admin
+
+password : admin
+
+
+
+#PASSWORD MYSQL
+
+'PASSWORD' | 'iot'
+
+
+
+# STRUTTURA TABELLA 'sensors'
+
+
+
+CREATE TABLE sensors.data ( topic VARCHAR(255) NOT NULL,timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP , value FLOAT NOT NULL );
