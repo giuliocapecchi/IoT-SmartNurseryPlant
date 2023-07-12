@@ -20,7 +20,9 @@
 char *service_url = "/temperature";
 
 static struct etimer et;
-static int state = 0;
+// state == 2 : non dangerous values received
+// state == 1 || 3 : danger zone, actuator needs to be turned on 
+static int state = 2;
 
 
 void client_response_handler(coap_message_t *response) {
@@ -31,7 +33,7 @@ void client_response_handler(coap_message_t *response) {
     }
     coap_get_payload(response, &chunk);
     //printf("|%.*s", len, (char *)chunk);
-    leds_off(LEDS_ALL);
+    leds_off(1);
     
 
     int value = extractValueFromJSON((char *)chunk);
@@ -39,7 +41,6 @@ void client_response_handler(coap_message_t *response) {
 
     if (value > 28){
         // Actuator needs to be activated!
-        //leds_off(1);
         leds_off(4);
         leds_off(8);
         
@@ -47,17 +48,17 @@ void client_response_handler(coap_message_t *response) {
         state = 3;
     }else if(value < 18 ){
         // Actuator needs to be activated!
-        //leds_off(1);
         leds_off(2);
         leds_off(4);
 
         leds_on(8); // blu
+        state = 1;
     }else{
-        //leds_off(1);
         leds_off(8);
         leds_off(2);
 
         leds_on(4); // verde
+        state = 2;
     }
 
 
@@ -82,14 +83,13 @@ PROCESS_THREAD(temperature_actuator, ev, data){
     coap_endpoint_parse(SERVER_EP, strlen(SERVER_EP), &server_ep);
     
     etimer_set(&et,10*CLOCK_SECOND);
+    //leds_on(1);
 
     while (1){
 
         //leds_on(LEDS_RED); non funziona
         //leds_on(LEDS_GREEN); funziona
-       leds_on(0x1);
-       //leds_off(1);
-
+       
        // 0 non accende niente
        // 1 accende giallo SOPRA
        // 2 accende rosso sotto
@@ -113,9 +113,10 @@ PROCESS_THREAD(temperature_actuator, ev, data){
             // Issue the request in a blocking manner
             // The client will wait for the server to reply (or the transmission to timeout)
             // dopo sta richiesta si esegue l'handler poi si torna qui
+            leds_on(1);
             COAP_BLOCKING_REQUEST(&server_ep, request, client_response_handler);
             
-
+            
             etimer_reset(&et);
         
         }
