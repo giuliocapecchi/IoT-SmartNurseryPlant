@@ -1,11 +1,14 @@
 package it.unipi;
-//import SmartSuit.unipi.it.DatabaseAccess;
+import org.eclipse.californium.core.CoapClient;
+import org.eclipse.californium.core.CoapResponse;
+import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.paho.client.mqttv3.*;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -25,7 +28,7 @@ public class Mqtt_collector {
             for (String topic : topics){
                 mqttClient.subscribe(topic);
             }
-            System.out.println("Collector started and subscribed to all the topics\n");
+            System.out.println("Collector started and subscribed to all the topics");
         }
 
         @Override
@@ -39,13 +42,24 @@ public class Mqtt_collector {
             try {
                 JSONObject jsonObject = (JSONObject) parser.parse(new String(mqttMessage.getPayload(), StandardCharsets.UTF_8));
                 Long value_long = (Long) jsonObject.get("value");
-                Integer value = value_long.intValue();
+                int value = value_long.intValue();
 
                 if(Objects.equals(topic, "co2")) {
                     value *= 10;
                 }
 
-                System.out.println("nuovo valore registrato sul topic:"+topic+", value:"+value+"\n");
+                //System.out.println("nuovo valore registrato sul topic:"+topic+", value:"+value+"\n");
+                Connection connection = Database_manager.db_connection();
+                String query = "INSERT INTO iotproject.sensors (topic, value) VALUES ('"+topic+"',"+value+ ");";
+                //System.out.println(query+"\n");
+                Database_manager.insert_executor(connection, query);
+                if(!Database_manager.close_connection(connection)) {
+                    System.out.println("Errore in chiusura connessione col database\n");
+                    System.exit(1);
+                }
+
+                CoapClient client = new CoapClient("coap://127.0.0.1/"+topic);
+                client.put(jsonObject.toJSONString(), MediaTypeRegistry.APPLICATION_JSON);
 
             }catch(ParseException e) {
                 throw new RuntimeException(e);

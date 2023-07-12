@@ -17,3 +17,16 @@ password : admin
 
 
 CREATE TABLE sensors.data ( topic VARCHAR(255) NOT NULL,timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP , value FLOAT NOT NULL );
+
+
+# LEDS!
+    // 0 non accende niente
+    // 1 accende giallo SOPRA
+    // 2 accende rosso sotto
+    // 3 accende 1+2 insieme
+    // 4 accende verde sotto
+    // 5 accende 1 + 4
+    // 6 giallo sotto (verde + rosso)
+    // 7 sopra giallo sotto verde+rosso
+    // 8 blu sotto
+    // 9 blu sotto giallo sopra
