@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Objects;
 
 
 public class Measurement_Resource extends CoapResource {
@@ -33,10 +34,17 @@ public class Measurement_Resource extends CoapResource {
     }
     public void handleGET(CoapExchange exchange) {
         JSONObject jsonObject = new JSONObject();
+        if(Objects.equals(this.getName(), "co2")){
+            value=value/10;
+        }
         jsonObject.put("value", value);
         exchange.respond(CoAP.ResponseCode.CONTENT,jsonObject.toJSONString(), MediaTypeRegistry.APPLICATION_JSON);
+        if(Objects.equals(this.getName(), "co2")){
+            value=value*10;
+        }
         System.out.println("richiesta GET ricevuta!\n");
     }
+
     public void handlePUT(CoapExchange exchange) {
         //method called by the Collector to update the resource state
 
