@@ -19,6 +19,8 @@
 #define SERVER_EP "coap://[fd00::1]:5683"
 char *service_url = "/temperature";
 
+extern coap_resource_t res_actuator;
+
 static struct etimer et;
 // state == 2 : non dangerous values received
 // state == 1 || 3 : danger zone, actuator needs to be turned on 
@@ -79,11 +81,12 @@ PROCESS_THREAD(temperature_actuator, ev, data){
    
     PROCESS_BEGIN();
 
+    coap_activate_resource(&res_actuator, "temperature_actuator");
     // Populate the coap_endpoint_t data structure
     coap_endpoint_parse(SERVER_EP, strlen(SERVER_EP), &server_ep);
     
     etimer_set(&et,10*CLOCK_SECOND);
-    //leds_on(1);
+    leds_on(1);
 
     while (1){
 
@@ -113,7 +116,6 @@ PROCESS_THREAD(temperature_actuator, ev, data){
             // Issue the request in a blocking manner
             // The client will wait for the server to reply (or the transmission to timeout)
             // dopo sta richiesta si esegue l'handler poi si torna qui
-            leds_on(1);
             COAP_BLOCKING_REQUEST(&server_ep, request, client_response_handler);
             
             
