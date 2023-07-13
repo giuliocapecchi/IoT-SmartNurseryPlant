@@ -8,7 +8,6 @@
 #include "etimer.h"
 #include "JSON_utility.h"
 #include "os/dev/leds.h"
-#include "sys/ctimer.h"
 
 
 /* Log configuration */
@@ -23,11 +22,12 @@ char *service_url = "/temperature";
 extern coap_resource_t res_actuator;
 
 static struct etimer et;
+static struct etimer et2;
 // state == 2 : non dangerous values received
 // state == 1 || 3 : danger zone, actuator needs to be turned on 
 static int state = 2 ;
 static bool active = true; 
-static struct ctimer b_leds;
+static bool controlled = false;
 
 int get_state() {
     return state;
@@ -45,21 +45,22 @@ void set_state(int value){
     state = value;
 }
 
-void blink_callback(){
-    if(state==1){
-        leds_toggle(8);
-    }else if(state==2){
-        leds_toggle(4);
-    }else if(state==3){
-        leds_toggle(2);
-    }
-
-    ctimer_set(&b_leds, 1*CLOCK_SECOND,blink_callback,NULL);
-}
-
 void sleep(){ //used in the resource when forcing a state
-    etimer_set(&et,20*CLOCK_SECOND);
-    ctimer_set(&b_leds, 5*CLOCK_SECOND,blink_callback,NULL);
+
+    leds_off(4);
+    leds_off(8);
+    leds_off(2);
+    
+    leds_on(1);
+    if(state==1){
+        leds_on(8); //blue
+    }else if(state==2){
+        leds_on(4); //green
+    }else if(state==3){
+        leds_on(2); //red
+    }
+    
+    controlled = true;    
 }
 
 void client_response_handler(coap_message_t *response) {
@@ -116,8 +117,6 @@ PROCESS_THREAD(temperature_actuator, ev, data){
    
     PROCESS_BEGIN();
 
-    printf("state iniziale: %d\n",get_state());
-
     coap_activate_resource(&res_actuator, "temperature_actuator");
     // Populate the coap_endpoint_t data structure
     coap_endpoint_parse(SERVER_EP, strlen(SERVER_EP), &server_ep);
@@ -140,18 +139,20 @@ PROCESS_THREAD(temperature_actuator, ev, data){
        // 7 sopra giallo sotto verde+rosso
        // 8 blu sotto
        // 9 blu sotto giallo sopra
-       PROCESS_YIELD();
        
-       ctimer_stop(&b_leds);
+       PROCESS_YIELD();
 
         if(!active){ 
-            etimer_set(&et,10*CLOCK_SECOND);
+            etimer_reset(&et);
             continue;
         }
 
+        if(controlled){
+            etimer_set(&et2,15*CLOCK_SECOND);
+            PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et2));
+            controlled = false;
+        }
         
-        
-
         if(etimer_expired(&et)){
          
             // Prepare the message
@@ -161,12 +162,8 @@ PROCESS_THREAD(temperature_actuator, ev, data){
             // The client will wait for the server to reply (or the transmission to timeout)
             // dopo sta richiesta si esegue l'handler poi si torna qui
             COAP_BLOCKING_REQUEST(&server_ep, request, client_response_handler);
-            
-            
-            etimer_set(&et,10*CLOCK_SECOND);
-        
+            etimer_reset(&et);
         }
     }
-    
     PROCESS_END();
 }

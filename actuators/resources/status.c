@@ -51,17 +51,14 @@ static void res_put_handler(coap_message_t *request,coap_message_t *response, ui
         leds_off(1);
         set_active(true);
     }else if(strcmp(parameter,"1")==0){ // force state to actuator
-        leds_off(1);
         set_active(true);
         set_state(atoi(parameter));
         sleep(); // function defined in the actuator, to actully show that a state was forced externally
     }else if(strcmp(parameter,"2")==0){
-        leds_off(1);
         set_active(true);
         set_state(atoi(parameter));
         sleep();
     }else if(strcmp(parameter,"3")==0){
-        leds_off(1);
         set_active(true);
         set_state(atoi(parameter));
         sleep();
