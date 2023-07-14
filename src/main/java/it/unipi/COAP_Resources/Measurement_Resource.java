@@ -43,6 +43,7 @@ public class Measurement_Resource extends CoapResource {
             value=value*10;
         }
         System.out.println("richiesta GET ricevuta!\n");
+        System.out.println("Richiesta ricevuta da: "+exchange.getSourceAddress()+"\n");
     }
 
     public void handlePUT(CoapExchange exchange) {

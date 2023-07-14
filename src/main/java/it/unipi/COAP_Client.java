@@ -3,11 +3,13 @@ package it.unipi;
 import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResponse;
 import org.eclipse.californium.core.coap.CoAP;
+import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 import java.nio.charset.StandardCharsets;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Objects;
 
@@ -42,6 +44,22 @@ public class COAP_Client {
 
                     Long value_long = (Long) jsonPayload.get("value");
                     int value = value_long.intValue();
+
+                    /*   IP     TOPIC    STATE   ACTIVE     TIMESTAMP
+                    *
+                    * */
+
+                    Connection connection = Database_manager.db_connection();
+
+                    String query = "INSERT INTO iotproject.actuators (ip, topic, state, active) VALUES ('"+topic+"',"+value+ ");";
+                    Database_manager.insert_executor(connection, query);
+                    if(!Database_manager.close_connection(connection)) {
+                        System.out.println("Errore in chiusura connessione col database\n");
+                        System.exit(1);
+                    }
+
+                    CoapClient client = new CoapClient("coap://127.0.0.1/"+topic);
+                    client.put(jsonObject.toJSONString(), MediaTypeRegistry.APPLICATION_JSON);
 
 
                 } catch (ParseException e) {
