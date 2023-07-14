@@ -1,6 +1,8 @@
 package it.unipi.COAP_Resources;
 
+import it.unipi.Actuators_controller;
 import it.unipi.Database_manager;
+import org.eclipse.californium.core.CoapClient;
 import org.eclipse.californium.core.CoapResource;
 import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.coap.MediaTypeRegistry;
@@ -9,6 +11,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -42,8 +45,24 @@ public class Measurement_Resource extends CoapResource {
         if(Objects.equals(this.getName(), "co2")){
             value=value*10;
         }
-        System.out.println("richiesta GET ricevuta!\n");
-        System.out.println("Richiesta ricevuta da: "+exchange.getSourceAddress()+"\n");
+        InetAddress address = exchange.getSourceAddress();
+        String ip_address_client = address.getHostAddress();
+        System.out.println("Indirizzo IP: " + address.getHostAddress());
+
+        if(Objects.equals(this.getName(), "temperature")){
+            Actuators_controller.client_temp.delete();
+            Actuators_controller.client_temp = new CoapClient("coap://"+ip_address_client+ this.getName()+"_actuator");
+            Actuators_controller.new_client_temp = true;
+        }else if(Objects.equals(this.getName(), "co2")){
+            Actuators_controller.client_co2.delete();
+            Actuators_controller.client_co2 = new CoapClient("coap://"+ip_address_client+ this.getName()+"_actuator");
+            Actuators_controller.new_client_co2 = true;
+        }else if(Objects.equals(this.getName(), "humidity")){
+            Actuators_controller.client_humidity.delete();
+            Actuators_controller.client_humidity = new CoapClient("coap://"+ip_address_client+ this.getName()+"_actuator");
+            Actuators_controller.new_client_humidity = true;
+        }
+
     }
 
     public void handlePUT(CoapExchange exchange) {
