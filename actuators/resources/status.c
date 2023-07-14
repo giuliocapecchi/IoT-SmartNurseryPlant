@@ -11,8 +11,6 @@ static void res_get_handler(coap_message_t *request,coap_message_t *response, ui
 static void res_put_handler(coap_message_t *request,coap_message_t *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
 
 extern int get_state();
-extern bool get_active();
-extern void set_active(bool value);
 extern void set_state(int value);
 extern void sleep();
 
@@ -40,26 +38,23 @@ static void res_get_handler(coap_message_t *request,coap_message_t *response, ui
 static void res_put_handler(coap_message_t *request,coap_message_t *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
     const char *parameter = NULL;
   if(coap_get_post_variable(request, "status", &parameter)){
-    if(strcmp(parameter,"off")==0 && get_active()==true ){
+    if(strcmp(parameter,"off")==0 && get_state()!=0 ){
         leds_off(4);
         leds_off(8);
         leds_off(2);
 
         leds_on(1);
-        set_active(false);
-    }else if(strcmp(parameter,"on")==0 && get_active()==false ){
+        set_state(0);
+    }else if(strcmp(parameter,"on")==0 && get_state()==0 ){
         leds_off(1);
-        set_active(true);
+        set_state(2);
     }else if(strcmp(parameter,"1")==0){ // force state to actuator
-        set_active(true);
         set_state(atoi(parameter));
         sleep(); // function defined in the actuator, to actully show that a state was forced externally
     }else if(strcmp(parameter,"2")==0){
-        set_active(true);
         set_state(atoi(parameter));
         sleep();
     }else if(strcmp(parameter,"3")==0){
-        set_active(true);
         set_state(atoi(parameter));
         sleep();
     }

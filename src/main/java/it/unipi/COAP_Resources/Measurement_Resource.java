@@ -47,19 +47,16 @@ public class Measurement_Resource extends CoapResource {
         }
         InetAddress address = exchange.getSourceAddress();
         String ip_address_client = address.getHostAddress();
-        System.out.println("Indirizzo IP: " + address.getHostAddress());
+        //System.out.println("Indirizzo IP: " + address.getHostAddress());
 
         if(Objects.equals(this.getName(), "temperature")){
-            Actuators_controller.client_temp.delete();
-            Actuators_controller.client_temp = new CoapClient("coap://"+ip_address_client+ this.getName()+"_actuator");
+            Actuators_controller.client_temp = new CoapClient("coap://["+ip_address_client+"]/"+ this.getName()+"_actuator");
             Actuators_controller.new_client_temp = true;
         }else if(Objects.equals(this.getName(), "co2")){
-            Actuators_controller.client_co2.delete();
-            Actuators_controller.client_co2 = new CoapClient("coap://"+ip_address_client+ this.getName()+"_actuator");
+            Actuators_controller.client_co2 = new CoapClient("coap://["+ip_address_client+"]/"+ this.getName()+"_actuator");
             Actuators_controller.new_client_co2 = true;
         }else if(Objects.equals(this.getName(), "humidity")){
-            Actuators_controller.client_humidity.delete();
-            Actuators_controller.client_humidity = new CoapClient("coap://"+ip_address_client+ this.getName()+"_actuator");
+            Actuators_controller.client_humidity = new CoapClient("coap://["+ip_address_client+"]/"+ this.getName()+"_actuator");
             Actuators_controller.new_client_humidity = true;
         }
 

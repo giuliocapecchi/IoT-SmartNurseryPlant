@@ -25,20 +25,12 @@ static struct etimer et;
 static struct etimer et2;
 // state == 2 : non dangerous values received
 // state == 1 || 3 : danger zone, actuator needs to be turned on 
+// state == 0 : device is off
 static int state = 2 ;
-static bool active = true; 
 static bool controlled = false;
 
 int get_state() {
     return state;
-}
-
-bool get_active() {
-    return active;
-}
-
-void set_active(bool value){
-    active = value;
 }
 
 void set_state(int value){
@@ -142,7 +134,7 @@ PROCESS_THREAD(temperature_actuator, ev, data){
        
        PROCESS_YIELD();
 
-        if(!active){ 
+        if(state==0){ 
             etimer_reset(&et);
             continue;
         }
