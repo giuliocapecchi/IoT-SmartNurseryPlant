@@ -101,8 +101,11 @@ public class Measurement_Resource extends CoapResource {
         }
         ResultSet resultSet = Database_manager.query_executor(connection, query);
         if(resultSet != null) {
-            resultSet.next();
-            query_value = resultSet.getFloat("value");
+            if(resultSet.next()){
+                query_value = resultSet.getFloat("value");
+            } else {
+                return 0;
+            }
             //System.out.println("value : "+query_value);
             // Chiudi il ResultSet
             try {

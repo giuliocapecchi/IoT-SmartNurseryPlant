@@ -53,8 +53,23 @@ public class Actuators_controller {
                     /*   IP     TOPIC    STATE   ACTIVE     TIMESTAMP
                     *
                     * */
+                    String ip_client = null;
+                    if(Objects.equals(t, "temperature")){
+                        ip_client= client_temp.getURI();
+                    } else if(Objects.equals(t, "co2")){
+                        ip_client= client_co2.getURI();
+                    } else if(Objects.equals(t, "humidity")){
+                        ip_client=client_humidity.getURI();
+                    }
 
                     Connection connection = Database_manager.db_connection();
+                    String query = "INSERT INTO iotproject.actuators (ip, topic, state) VALUES ("+ip_client+","+t+","+value+");";
+                    assert connection != null;
+                    Database_manager.insert_executor(connection, query);
+                    if(!Database_manager.close_connection(connection)) {
+                        System.out.println("Errore in chiusura connessione col database\n");
+                        System.exit(1);
+                    }
 
                     /*    String query = "INSERT INTO iotproject.actuators (ip, topic, state, active) VALUES ('"+topic+"',"+value+ ");";
                     Database_manager.insert_executor(connection, query);
@@ -65,7 +80,7 @@ public class Actuators_controller {
 
                     CoapClient client = new CoapClient("coap://127.0.0.1/"+topic);
                     client.put(jsonObject.toJSONString(), MediaTypeRegistry.APPLICATION_JSON);
-*/
+                    */
 
                 } catch (ParseException e) {
                     System.out.println("Errore nel parsing JSON");
