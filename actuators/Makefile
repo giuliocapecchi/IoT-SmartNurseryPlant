@@ -8,7 +8,7 @@ PLATFORMS_EXCLUDE = sky z1
 # Include CoAP resources
 MODULES_REL += ./resources
 MODULES_REL += ./utility
-
+CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
 CONTIKI=../..
 
 # Include the CoAP implementation

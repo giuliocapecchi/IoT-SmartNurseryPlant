@@ -60,6 +60,11 @@ void client_response_handler(coap_message_t *response) {
     const uint8_t *chunk;
     if (response == NULL) {
         puts("Request timed out");
+        state = 0;
+        leds_off(2);
+        leds_off(4);
+        leds_off(8);
+        leds_on(1);
         return;
     }
     coap_get_payload(response, &chunk);

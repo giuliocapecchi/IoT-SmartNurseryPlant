@@ -1,17 +1,18 @@
+#include "contiki.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "contiki.h"
 #include "contiki-net.h"
 #include "coap-engine.h"
 #include "coap-blocking-api.h"
 #include "etimer.h"
 #include "JSON_utility.h"
 #include "os/dev/leds.h"
-
+#include "sys/log.h"
 
 /* Log configuration */
 #include "coap-log.h"
+
 #define LOG_MODULE "App"
 #define LOG_LEVEL LOG_LEVEL_APP
 
@@ -55,10 +56,19 @@ void sleep(){ //used in the resource when forcing a state
     controlled = true;    
 }
 
+static int disconnected = 0;
+
 void client_response_handler(coap_message_t *response) {
     const uint8_t *chunk;
     if (response == NULL) {
-        puts("Request timed out");
+        printf("Request timed out\n");
+        // server is unreacheable, go back in off state.
+        state = 0;
+        disconnected = 1;
+        leds_off(2);
+        leds_off(4);
+        leds_off(8);
+        leds_on(1);
         return;
     }
     coap_get_payload(response, &chunk);
@@ -108,11 +118,9 @@ PROCESS_THREAD(temperature_actuator, ev, data){
     static coap_message_t request[1]; /* This way the packet can be treated as pointer as usual. */
    
     PROCESS_BEGIN();
-
     coap_activate_resource(&res_actuator, "temperature_actuator");
     // Populate the coap_endpoint_t data structure
     coap_endpoint_parse(SERVER_EP, strlen(SERVER_EP), &server_ep);
-    
     etimer_set(&et,10*CLOCK_SECOND);
     leds_on(1);
 
@@ -144,6 +152,12 @@ PROCESS_THREAD(temperature_actuator, ev, data){
             PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et2));
             controlled = false;
         }
+
+        if(disconnected==1){
+            // Populate the coap_endpoint_t data structure
+            coap_endpoint_parse(SERVER_EP, strlen(SERVER_EP), &server_ep);
+            disconnected=0;
+        }
         
         if(etimer_expired(&et)){
          
@@ -153,9 +167,9 @@ PROCESS_THREAD(temperature_actuator, ev, data){
             // Issue the request in a blocking manner
             // The client will wait for the server to reply (or the transmission to timeout)
             // dopo sta richiesta si esegue l'handler poi si torna qui
-            COAP_BLOCKING_REQUEST(&server_ep, request, client_response_handler);
+	        COAP_BLOCKING_REQUEST(&server_ep, request, client_response_handler);
             etimer_reset(&et);
-        }
+       	}
     }
     PROCESS_END();
 }
