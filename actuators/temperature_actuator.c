@@ -25,6 +25,7 @@ extern coap_resource_t res_actuator;
 
 static struct etimer et;
 static struct etimer et2;
+static struct etimer et3;
 // state == 2 : non dangerous values received
 // state == 1 || 3 : danger zone, actuator needs to be turned on 
 // state == 0 : device is off
@@ -85,16 +86,12 @@ void sleep(){ //used in the resource when forcing a state
     controlled = true;    
 }
 
-static int disconnected = 0;
-
 void client_response_handler(coap_message_t *response) {
     const uint8_t *chunk;
     if (response==NULL) {
-        puts("Request timed out");
-        printf("Request timed out\n");
+        printf("Request timed out, server is unrecheable\n");
         // server is unreacheable, go back in off state.
-        state = 0;
-        disconnected = 1;
+        state = 2;
         leds_off(2);
         leds_off(4);
         leds_off(8);
@@ -105,7 +102,6 @@ void client_response_handler(coap_message_t *response) {
     //printf("|%.*s", len, (char *)chunk);
     leds_off(1);
     
-
     int value = extractValueFromJSON((char *)chunk);
     printf("Temperature_value: %d\n", value);
 
@@ -138,14 +134,26 @@ PROCESS_THREAD(temperature_actuator, ev, data){
     button_hal_button_t *btn;
     static coap_endpoint_t server_ep;
     static coap_message_t request[1]; /* This way the packet can be treated as pointer as usual. */
-   
+
     PROCESS_BEGIN();
     coap_activate_resource(&res_actuator, "temperature_actuator");
     // Populate the coap_endpoint_t data structure
     coap_endpoint_parse(SERVER_EP, strlen(SERVER_EP), &server_ep);
-    
+   
     etimer_set(&et,10*CLOCK_SECOND);
     leds_on(1);
+
+    // per fede
+    btn = button_hal_get_by_index(0);
+    printf("Device button count: %u.\n", button_hal_button_count);
+    if(btn) { 
+		printf("%s on pin %u with ID=0, Logic=%s, Pull=%s\n",
+		BUTTON_HAL_GET_DESCRIPTION(btn), btn->pin,
+		btn->negative_logic ? "Negative" : "Positive",
+		btn->pull == GPIO_HAL_PIN_CFG_PULL_UP ? "Pull Up" : "Pull Down");
+    }
+    // per fede
+
 
     while (1){
         
@@ -162,18 +170,29 @@ PROCESS_THREAD(temperature_actuator, ev, data){
        // 7 sopra giallo sotto verde+rosso
        // 8 blu sotto
        // 9 blu sotto giallo sopra
-       
+       printf("prima di process yield\n");
        PROCESS_YIELD();
+       printf("dopo process yield, state: %d, controlled : %d\n",state, controlled);
 
         if(ev==button_hal_press_event){
+            
             state = (state+1)%4;
+            if(state==0)
+                state++;
+            printf("button pressed! New state:%d\n",state);
             leds_management();
             leds_on(1);                         //forced state, yellow led on
-            etimer_set(&et2,15*CLOCK_SECOND);
-            PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et2));
+            etimer_set(&et3,5*CLOCK_SECOND);
+            PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et3) || ev == button_hal_press_event);
+            leds_management();
+            // stop et3 in case the button was pressed, reset et. This way none of the two passes beyond PROCESS_YIELD()
+            etimer_reset(&et);
+            etimer_stop(&et3);
+            
         }
 
-        if(ev== button_hal_periodic_event){
+        if(ev == button_hal_periodic_event){
+            printf("long button pressed!\n");
             btn = (button_hal_button_t *)data;
             if(btn->press_duration_seconds > 5) {
                 state = 0;
@@ -182,6 +201,7 @@ PROCESS_THREAD(temperature_actuator, ev, data){
         }
 
         if(state==0){ 
+            printf("Dongle OFF\n");
             etimer_reset(&et);
             continue;
         }
@@ -191,12 +211,7 @@ PROCESS_THREAD(temperature_actuator, ev, data){
             PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et2));
             controlled = false;
         }
-
-        if(disconnected==1){
-            // Populate the coap_endpoint_t data structure
-            coap_endpoint_parse(SERVER_EP, strlen(SERVER_EP), &server_ep);
-            disconnected=0;
-        }
+       
         
         if(etimer_expired(&et)){
             
@@ -206,6 +221,7 @@ PROCESS_THREAD(temperature_actuator, ev, data){
             // Issue the request in a blocking manner
             // The client will wait for the server to reply (or the transmission to timeout)
             // dopo sta richiesta si esegue l'handler poi si torna qui
+            printf("waiting for coap response\n");
             COAP_BLOCKING_REQUEST(&server_ep, request, client_response_handler);
             etimer_reset(&et);
        	}
