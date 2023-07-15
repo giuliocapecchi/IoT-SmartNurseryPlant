@@ -66,13 +66,13 @@ public class Actuators_controller {
                     assert connection != null;
                     Database_manager.insert_executor(connection, query);
                     if(!Database_manager.close_connection(connection)) {
-                        System.out.println("Errore in chiusura connessione col database\n");
+                        System.out.println("Error closing connection with database\n");
                         System.exit(1);
                     }
 
 
                 } catch (ParseException e) {
-                    System.out.println("Errore nel parsing JSON");
+                    System.out.println("Error parsing JSON");
                 }
             }
         }

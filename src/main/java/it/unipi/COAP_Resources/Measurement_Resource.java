@@ -47,7 +47,7 @@ public class Measurement_Resource extends CoapResource {
         }
         InetAddress address = exchange.getSourceAddress();
         String ip_address_client = address.getHostAddress();
-        System.out.println("Indirizzo IP_client su GET : " + address.getHostAddress());
+        //System.out.println("Indirizzo IP_client su GET : " + address.getHostAddress());
 
         if(Objects.equals(this.getName(), "temperature")){
             Actuators_controller.client_temp = new CoapClient("coap://["+ip_address_client+"]/"+ this.getName()+"_actuator");

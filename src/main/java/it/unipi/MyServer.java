@@ -1,10 +1,19 @@
 package it.unipi;
 
 import it.unipi.COAP_Resources.Measurement_Resource;
+import it.unipi.frontend.Frontend;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.californium.core.CoapServer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class MyServer extends CoapServer {
+
+    public static void setExit(boolean exit) {
+        MyServer.exit = exit;
+    }
+
+    static volatile boolean exit = false;
     public static void main(String[] args) throws MqttException {
         // Start the MQTT collector
         Thread mqttThread = new Thread(() -> {
@@ -22,7 +31,9 @@ public class MyServer extends CoapServer {
         server.add(new Measurement_Resource("temperature"));
         server.add(new Measurement_Resource("humidity"));
         server.add(new Measurement_Resource("co2"));
-        System.out.println("Server started\n");
+        System.out.println("COAP server started\n");
+        Logger californiumLogger = Logger.getLogger("org.eclipse.californium");
+        californiumLogger.setLevel(Level.SEVERE);
         server.start();
 
         // Start Loop for Actuators management
@@ -30,18 +41,24 @@ public class MyServer extends CoapServer {
         actuatorThread.start();
 
         // Start Command Line Interface (to be implemented)
-        /*Thread cliThread = new Thread(() -> {
+        Thread cliThread = new Thread(() -> {
             // Implementazione della Command Line Interface
+            Frontend.start();
         });
-        cliThread.start();*/
+        cliThread.start();
 
         // Wait for completion of threads
         try {
-            mqttThread.join();
-            actuatorThread.join();
-            //cliThread.join();
+            cliThread.join();
+            //mqttThread.join();
+            //actuatorThread.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        if(exit){
+            System.exit(0);
+        }
+
     }
 }
