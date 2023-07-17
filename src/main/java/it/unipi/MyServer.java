@@ -4,6 +4,8 @@ import it.unipi.COAP_Resources.Measurement_Resource;
 import it.unipi.frontend.Frontend;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.californium.core.CoapServer;
+
+import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -42,7 +44,11 @@ public class MyServer extends CoapServer {
 
         // Start Command Line Interface (to be implemented)
         Thread cliThread = new Thread(() -> {
-            Frontend.start();
+            try {
+                Frontend.start();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         });
         cliThread.start();
 
