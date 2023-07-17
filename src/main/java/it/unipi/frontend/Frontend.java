@@ -42,7 +42,7 @@ public class Frontend {
             if (!Objects.equals(command, "1")) {
                 System.out.println("Choose an option:");
                 System.out.println("1. Help");
-                System.out.println("2. Status of your system");
+                System.out.println("2. Status of the system");
                 System.out.println("3. Measurements of sampled values");
                 System.out.println("4. Send commands to actuators");
                 System.out.println("5. Open Grafana");
@@ -91,6 +91,9 @@ public class Frontend {
                             exit_control_panel = true;
                             clearConsole();
                             break;
+                        }else{
+                            System.out.println("Invalid input!");
+                            System.out.print("Input->");
                         }
                     }
                     break;
@@ -118,6 +121,9 @@ public class Frontend {
                             exit_control_panel_mes = true;
                             clearConsole();
                             break;
+                        }else{
+                            System.out.println("Invalid input!");
+                            System.out.print("Input->");
                         }
                     }
                     break;
@@ -129,7 +135,7 @@ public class Frontend {
                             clearConsole();
                             get_actuators_commands();
                             try {
-                                Thread.sleep(10000);
+                                Thread.sleep(5000);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
@@ -139,10 +145,52 @@ public class Frontend {
 
                     while (true) {
                         String input = scanner.nextLine();
-                        if (input.equalsIgnoreCase("q")) {
+                        String[] commands = input.split(" ");
+                        if (commands.length == 2) {
+                            try {
+                                int actuator = Integer.parseInt(commands[0]);
+                                int state = Integer.parseInt(commands[1]);
+                                int co2_status = coapResponse(client_co2);
+                                int humidity_status = coapResponse(client_humidity);
+                                int temperature_status = coapResponse(client_temp);
+                                // Check if the values are correct
+                                if (actuator >= 1 && actuator <= 3 && state >= 0 && state <= 3) {
+                                    System.out.println("Setting actuator " + actuator + " to state " + state+"...");
+                                    CoapResponse response;
+                                    if(actuator==1 && co2_status!=-1){
+                                        response = client_co2.put("status="+state,MediaTypeRegistry.TEXT_PLAIN);
+                                    }else if (actuator==2 && humidity_status!=-1){
+                                        response = client_humidity.put("status="+state,MediaTypeRegistry.TEXT_PLAIN);
+                                    }else if(actuator==3 && temperature_status!=-1){
+                                        response = client_temp.put("status="+state,MediaTypeRegistry.TEXT_PLAIN);
+                                    }else{
+                                        clearConsole();
+                                        System.out.println("---->Actuator disconnected! Updating table...");
+                                        continue;
+                                    }
+                                    // Controlla la risposta
+                                    if (response != null) {
+                                        clearConsole();
+                                        System.out.println("---->Set. Updating table...");
+                                        //System.out.println("Response Code: " + response.getCode());
+                                        //System.out.println("Response Payload: " + response.getResponseText());
+                                    } else {
+                                        System.out.println("No response received.");
+                                    }
+                                } else {
+                                    System.out.println("Invalid actuator or state.");
+                                    System.out.print("Command->");
+                                }
+                            } catch (NumberFormatException e) {
+                                System.out.println("Invalid input format.");
+                            }
+                        } else if (input.equalsIgnoreCase("q")) {
                             exit_control_panel_actuators = true;
                             clearConsole();
                             break;
+                        } else {
+                            System.out.println("Invalid command format.");
+                            System.out.print("Command->");
                         }
                     }
 
@@ -151,6 +199,7 @@ public class Frontend {
                     System.out.println("Opening browser on the Grafana homepage...");
                     try {
                         Desktop.getDesktop().browse(new URI("http://localhost:3000/?orgId=1&viewPanel=3"));
+                        clearConsole();
                     } catch (IOException | URISyntaxException e) {
                         System.out.println("Failed to open browser.");
                     }
@@ -176,15 +225,14 @@ public class Frontend {
         int temperature_status = coapResponse(client_temp);
 
 
-        System.out.println("+-------------+-------+-------------------------+");
+        System.out.println("+-----------------------------------------------+");
         System.out.println("| ID\t| ACTUATOR\t| CONNECTED\t|STATE\t|");
-        System.out.println("+-------------+-------+-------------------------+");
+        System.out.println("+-----------------------------------------------+");
         System.out.println("| 1\t| co2\t\t| "+((co2_status==-1)? "NO":"YES")+"\t\t| "+((co2_status==-1)?"":co2_status)+"\t|");
         System.out.println("| 2\t| humidity\t| "+((humidity_status==-1)? "NO":"YES")+"\t\t| "+((humidity_status==-1)?"":humidity_status)+"\t|");
         System.out.println("| 3\t| temperature\t| "+((temperature_status==-1)? "NO":"YES")+"\t\t| "+((temperature_status==-1)?"":temperature_status)+"\t|");
-        System.out.println("+-------------+-------+-------------------------+");
+        System.out.println("+-----------------------------------------------+");
         System.out.print("Command->");
-
     }
 
     private static int coapResponse(CoapClient client) {
@@ -233,9 +281,9 @@ public class Frontend {
                 String topic = resultSet.getString("topic");
                 float value =  resultSet.getFloat("value");
                 if ((actual_timestamp.getTime() - ts.getTime()) > 20000) {
-                    System.out.println("| "+i+"\t| "+topic+(Objects.equals(topic, "co2") ?"\t":"")+"\t|  NO\t\t|"+value+"\t|");
+                    System.out.println("| "+i+"\t| "+topic+(Objects.equals(topic, "co2") ?"\t":"")+"\t|  NO\t\t| "+value+"\t|");
                 } else {
-                    System.out.println("| "+i+"\t| "+topic+(Objects.equals(topic, "co2") ?"\t":"")+"\t| YES\t\t|"+value+"\t|");
+                    System.out.println("| "+i+"\t| "+topic+(Objects.equals(topic, "co2") ?"\t":"")+"\t| YES\t\t| "+value+"\t|");
                 }
                 System.out.println("+-----------------------------------------------+");
                 i++;
@@ -300,50 +348,24 @@ public class Frontend {
             System.out.println("Empty resultset");
         }
 
-        query = "SELECT a.topic, a.state, a.timestamp\n" +
-                "FROM actuators a\n" +
-                "INNER JOIN (\n" +
-                "    SELECT topic, MAX(timestamp) AS max_timestamp\n" +
-                "    FROM actuators\n" +
-                "    GROUP BY topic\n" +
-                ") t ON a.topic = t.topic AND a.timestamp = t.max_timestamp;\n";
-        resultSet = Database_manager.query_executor(connection, query);
-        if(resultSet != null) {
-            while(resultSet.next()){
-                Timestamp ts = resultSet.getTimestamp("timestamp");
-                Timestamp actual_timestamp = new Timestamp(System.currentTimeMillis());
-                String topic = resultSet.getString("topic");
-                if(Objects.equals(topic, "temperature_actuator")){
-                    topic = "temperature";
-                }else if(Objects.equals(topic, "humidity_actuator")){
-                    topic = "humidity";
-                }else if(Objects.equals(topic, "co2_actuator")){
-                    topic = "co2";
-                }
-                if ((actual_timestamp.getTime() - ts.getTime()) > 20000) {
-                    System.out.println("| actuator\t| "+topic+(Objects.equals(topic, "co2") ?"\t":"")+"\t| no\t\t|\t|");
-                } else {
-                    String state = resultSet.getString("state");
-                    System.out.println("| actuator\t| "+topic+(Objects.equals(topic, "co2") ?"\t":"")+"\t| yes\t\t| "+state+"\t|");;
-                }
-                System.out.println("+-------------------------------------------------------+");
-            }
-            // Close the ResultSet
-            try {
-                resultSet.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }else{
-            System.out.println("Empty resultset");
-        }
-
         if(!Database_manager.close_connection(connection)) {
             System.out.println("Error closing connection with database\n");
             System.exit(1);
         }
 
+        int co2_status = coapResponse(client_co2);
+        int humidity_status = coapResponse(client_humidity);
+        int temperature_status = coapResponse(client_temp);
+
+        System.out.println("| actuator\t| co2\t\t| "+((co2_status==-1)? "no":"yes")+"\t\t| "+((co2_status==-1)?"":co2_status)+"\t|");
+        System.out.println("+-------------------------------------------------------+");
+        System.out.println("| actuator\t| humidity\t| "+((humidity_status==-1)? "no":"yes")+"\t\t| "+((humidity_status==-1)?"":humidity_status)+"\t|");
+        System.out.println("+-------------------------------------------------------+");
+        System.out.println("| actuator\t| temperature\t| "+((temperature_status==-1)? "no":"yes")+"\t\t| "+((temperature_status==-1)?"":temperature_status)+"\t|");
+        System.out.println("+-------------------------------------------------------+");
+
         System.out.println("Type 'q' to quit.");
+        System.out.print("Input->");
     }
 
 
