@@ -293,6 +293,18 @@ PROCESS_THREAD(mqtt_client_process, ev, data)
 		
 		etimer_set(&periodic_timer, STATE_MACHINE_PERIODIC);
       
+    }else if(ev == button_hal_press_event){
+      etimer_stop(&periodic_timer);
+      ctimer_stop(&co2_timer);
+      printf("button was pressed! OFF state\n");
+      leds_off(LEDS_GREEN);
+      leds_on(LEDS_RED);
+      PROCESS_WAIT_EVENT_UNTIL( ev == button_hal_press_event);
+      printf("ON state\n");
+      leds_on(LEDS_GREEN);
+      leds_off(LEDS_RED);
+      etimer_set(&periodic_timer, STATE_MACHINE_PERIODIC);
+      ctimer_set(&co2_timer, DEFAULT_PUBLISH_INTERVAL, co2_sampling, NULL);
     }
 
   }
