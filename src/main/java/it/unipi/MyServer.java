@@ -42,16 +42,14 @@ public class MyServer extends CoapServer {
 
         // Start Command Line Interface (to be implemented)
         Thread cliThread = new Thread(() -> {
-            // Implementazione della Command Line Interface
             Frontend.start();
         });
         cliThread.start();
 
-        // Wait for completion of threads
+        // Wait for completion of the cli thread
         try {
             cliThread.join();
-            //mqttThread.join();
-            //actuatorThread.join();
+
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

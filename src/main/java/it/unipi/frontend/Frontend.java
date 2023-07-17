@@ -34,6 +34,7 @@ public class Frontend {
 
 
             // Leggi l'input dell'utente
+            System.out.print("Input->");
             command = scanner.nextLine();
 
             // Esegui l'azione corrispondente al comando inserito
@@ -91,6 +92,7 @@ public class Frontend {
                     setExit(true);
                     return;
                 default:
+                    clearConsole();
                     System.out.println("Invalid command");
                     break;
             }
