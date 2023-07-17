@@ -183,57 +183,8 @@ public class Frontend {
         System.out.println("| 2\t| humidity\t| "+((humidity_status==-1)? "NO":"YES")+"\t\t| "+((humidity_status==-1)?"":humidity_status)+"\t|");
         System.out.println("| 3\t| temperature\t| "+((temperature_status==-1)? "NO":"YES")+"\t\t| "+((temperature_status==-1)?"":temperature_status)+"\t|");
         System.out.println("+-------------+-------+-------------------------+");
+        System.out.print("Command->");
 
-        while (true) {
-            System.out.print("Command->");
-            Scanner scanner2 = new Scanner(System.in);
-            String input = scanner2.nextLine();
-            String[] commands = input.split(" ");
-
-            if (commands.length == 2) {
-                try {
-                    int actuator = Integer.parseInt(commands[0]);
-                    int state = Integer.parseInt(commands[1]);
-
-                    // Check if the values are correct
-                    if (actuator >= 1 && actuator <= 3 && state >= 0 && state <= 3) {
-                        System.out.println("Setting actuator " + actuator + " to state " + state+"...");
-                        CoapResponse response = null;
-                        if(actuator==1 && co2_status!=-1){
-                            response = client_co2.put("status="+state,MediaTypeRegistry.TEXT_PLAIN);
-                        }else if (actuator==2 && humidity_status!=-1){
-                            response = client_humidity.put("status="+state,MediaTypeRegistry.TEXT_PLAIN);
-                        }else if(actuator==3 && temperature_status!=-1){
-                            response = client_temp.put("status="+state,MediaTypeRegistry.TEXT_PLAIN);
-                        }else{
-                            clearConsole();
-                            System.out.println("---->Actuator disconnected!");
-                            return;
-                        }
-                        // Controlla la risposta
-                        if (response != null) {
-                            clearConsole();
-                            System.out.println("---->Set");
-                            //System.out.println("Response Code: " + response.getCode());
-                            //System.out.println("Response Payload: " + response.getResponseText());
-                            return;
-                        } else {
-                            System.out.println("No response received.");
-                        }
-                    } else {
-                        System.out.println("Invalid actuator or state.");
-                    }
-                } catch (NumberFormatException e) {
-                    System.out.println("Invalid input format.");
-                }
-            } else if (input.equalsIgnoreCase("q")) {
-                exit_control_panel_actuators = true;
-                clearConsole();
-                return;
-            } else {
-                System.out.println("Invalid command format.");
-            }
-        }
     }
 
     private static int coapResponse(CoapClient client) {

@@ -1,0 +1,45 @@
+make clean 
+make distclean = pulisce tutti i file di build e elimina anche tutta la build directory
+
+#I SEGUENTI VANNO ESEGUITI DENTRO IL CONTAINER CREATO CON 'contikier'
+
+# FLASHARE IL CODICE SUL DONGLE 
+make TARGET=nrf52840 BOARD=dongle 'nome-file-in-c'.dfu-upload PORT=/dev/ttyACM0
+
+# FAR PARTIRE IL CODICE FLASHATO SUL DONGLE
+make login TARGET=nrf52840 BOARD=dongle PORT=/dev/ttyACM0
+
+
+Per il border-router, poi fai questo una tra le 2 seguenti : 
+
+	1) Utilizzo border router - connessione in cooja
+	make TARGET=cooja connect-router-cooja
+
+	2)Use the tunslip6:
+	make TARGET=nrf52840 BOARD=dongle PORT=/dev/ttyACM0 connect-router
+
+
+#aprire un terminale dentro un container già in esecuzione
+docker exec –it CONTAINER ID /bin/bash
+
+
+
+# MOSQUITTO
+mosquitto_sub -h 127.0.0.1 -t TOPIC
+
+mosquitto_pub -h 127.0.0.1 -t TOPIC -m MESSAGE
+
+# check mosquitto log
+less /var/log/mosquitto/mosquitto.log
+
+
+#COAP CLIENT
+coap-client -m get coap://[fd00::201:1:1:1]/RESOURCE
+
+
+
+border router addresses:
+
+[INFO: BR        ]   fd00::f6ce:367e:a8e6:6e01
+[INFO: BR        ]   fe80::f6ce:367e:a8e6:6e01
+
