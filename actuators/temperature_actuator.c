@@ -69,7 +69,6 @@ void leds_management(){
 }
 
 void sleep(){ //used in the resource when forcing a state
-
     leds_off(4);
     leds_off(8);
     leds_off(2);
@@ -121,7 +120,6 @@ void client_response_handler(coap_message_t *response) {
 
 }
 
-
 /* Declare and auto-start this file's process */
 PROCESS(temperature_actuator, "CoAP Temperature Actuator");
 AUTOSTART_PROCESSES(&temperature_actuator);
@@ -143,36 +141,11 @@ PROCESS_THREAD(temperature_actuator, ev, data){
     etimer_set(&et,10*CLOCK_SECOND);
     leds_on(1);
 
-    // per fede
     btn = button_hal_get_by_index(0);
-    printf("Device button count: %u.\n", button_hal_button_count);
-    if(btn) { 
-		printf("%s on pin %u with ID=0, Logic=%s, Pull=%s\n",
-		BUTTON_HAL_GET_DESCRIPTION(btn), btn->pin,
-		btn->negative_logic ? "Negative" : "Positive",
-		btn->pull == GPIO_HAL_PIN_CFG_PULL_UP ? "Pull Up" : "Pull Down");
-    }
-    // per fede
-
 
     while (1){
-        
-        //leds_on(LEDS_RED); non funziona
-        //leds_on(LEDS_GREEN); funziona
-       
-       // 0 non accende niente
-       // 1 accende giallo SOPRA
-       // 2 accende rosso sotto
-       // 3 accende 1+2 insieme
-       // 4 accende verde sotto
-       // 5 accende 1 + 4
-       // 6 giallo sotto (verde + rosso)
-       // 7 sopra giallo sotto verde+rosso
-       // 8 blu sotto
-       // 9 blu sotto giallo sopra
-       printf("prima di process yield\n");
+
        PROCESS_YIELD();
-       printf("dopo process yield, state: %d, controlled : %d\n",state, controlled);
 
         if(ev==button_hal_press_event){
             
@@ -211,17 +184,13 @@ PROCESS_THREAD(temperature_actuator, ev, data){
             PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et2));
             controlled = false;
         }
-       
         
         if(etimer_expired(&et)){
-            
             // Prepare the message
             coap_init_message(request, COAP_TYPE_CON, COAP_GET, 0);
             coap_set_header_uri_path(request, service_url);
             // Issue the request in a blocking manner
             // The client will wait for the server to reply (or the transmission to timeout)
-            // dopo sta richiesta si esegue l'handler poi si torna qui
-            printf("waiting for coap response\n");
             COAP_BLOCKING_REQUEST(&server_ep, request, client_response_handler);
             etimer_reset(&et);
        	}
