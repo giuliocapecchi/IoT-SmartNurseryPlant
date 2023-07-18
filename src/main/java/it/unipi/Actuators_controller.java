@@ -43,6 +43,8 @@ public class Actuators_controller {
                     continue;
 
                 byte[] payload = response.getPayload();
+                if (payload==null)
+                    continue;
                 String payloadString = new String(payload);
                 JSONParser parser = new JSONParser();
                 try {

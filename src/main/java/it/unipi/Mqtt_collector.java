@@ -37,7 +37,7 @@ public class Mqtt_collector {
         }
 
         @Override
-        public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
+        public void messageArrived(String topic, MqttMessage mqttMessage) {
             JSONParser parser = new JSONParser();
             try {
                 JSONObject jsonObject = (JSONObject) parser.parse(new String(mqttMessage.getPayload(), StandardCharsets.UTF_8));
@@ -58,6 +58,7 @@ public class Mqtt_collector {
                     System.exit(1);
                 }
 
+                jsonObject.replace("value",value);
                 CoapClient client = new CoapClient("coap://127.0.0.1/"+topic);
                 client.put(jsonObject.toJSONString(), MediaTypeRegistry.APPLICATION_JSON);
 

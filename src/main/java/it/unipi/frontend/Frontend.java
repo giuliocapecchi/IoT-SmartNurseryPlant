@@ -32,7 +32,7 @@ public class Frontend {
     private static boolean exit_control_panel_mes = false;
 
     static Scanner scanner = new Scanner(System.in);
-    public static void start() throws SQLException {
+    public static void start() throws SQLException, InterruptedException {
         String command= null;
         clearConsole();
         Logger.getLogger(Desktop.class.getName()).setLevel(Level.OFF);
@@ -58,9 +58,10 @@ public class Frontend {
             switch (command) {
                 case "1":
                     clearConsole();
-                    System.out.println("**Help menu**\n1. Help: Show this menu\n2. Show which sensors and actuators are " +
-                            "connected to the system and their status\n3.Shows a list of latest measurement values for " +
-                            "each sensor\n4.Show a submenu with the state of the actuator and handle their behaviour\n" +
+                    System.out.println("HELP MENU\n+-----------------------------------------------+\n" +
+                            "1. Help: Show this menu\n2. Show which sensors and actuators are " +
+                            "connected to the system and their status\n3. Shows a list of latest measurement values for " +
+                            "each sensor\n4. Show a submenu with the state of the actuator and handle their behaviour\n" +
                             "5. Open the default browser on the Grafana page for this system.\n6. Exit from this application");
                     break;
                 case "2":
@@ -199,10 +200,11 @@ public class Frontend {
                     System.out.println("Opening browser on the Grafana homepage...");
                     try {
                         Desktop.getDesktop().browse(new URI("http://localhost:3000/?orgId=1&viewPanel=3"));
-                        clearConsole();
                     } catch (IOException | URISyntaxException e) {
                         System.out.println("Failed to open browser.");
                     }
+                    Thread.sleep(2000);
+                    clearConsole();
                     break;
                 case "6":
                     System.out.println("Exit...");
@@ -360,11 +362,11 @@ public class Frontend {
         int humidity_status = coapResponse(client_humidity);
         int temperature_status = coapResponse(client_temp);
 
-        System.out.println("| actuator\t| co2\t\t| "+((co2_status==-1)? "no":"yes")+"\t\t| "+((co2_status==-1)?"":co2_status)+"\t|");
+        System.out.println("| actuator\t| co2\t\t| "+((co2_status==-1)? "no":"yes")+"\t\t|   "+((co2_status==-1)?"":co2_status)+"\t|");
         System.out.println("+-------------------------------------------------------+");
-        System.out.println("| actuator\t| humidity\t| "+((humidity_status==-1)? "no":"yes")+"\t\t| "+((humidity_status==-1)?"":humidity_status)+"\t|");
+        System.out.println("| actuator\t| humidity\t| "+((humidity_status==-1)? "no":"yes")+"\t\t|   "+((humidity_status==-1)?"":humidity_status)+"\t|");
         System.out.println("+-------------------------------------------------------+");
-        System.out.println("| actuator\t| temperature\t| "+((temperature_status==-1)? "no":"yes")+"\t\t| "+((temperature_status==-1)?"":temperature_status)+"\t|");
+        System.out.println("| actuator\t| temperature\t| "+((temperature_status==-1)? "no":"yes")+"\t\t|   "+((temperature_status==-1)?"":temperature_status)+"\t|");
         System.out.println("+-------------------------------------------------------+");
 
         System.out.println("Type 'q' to quit.");

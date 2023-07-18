@@ -46,7 +46,7 @@ public class MyServer extends CoapServer {
         Thread cliThread = new Thread(() -> {
             try {
                 Frontend.start();
-            } catch (SQLException e) {
+            } catch (SQLException | InterruptedException e) {
                 throw new RuntimeException(e);
             }
         });
