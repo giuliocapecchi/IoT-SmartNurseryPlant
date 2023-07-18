@@ -40,7 +40,7 @@ static void res_put_handler(coap_message_t *request,coap_message_t *response, ui
   if(coap_get_post_variable(request, "status", &parameter)){ 
                                                         
     int value = extractValueFromJSON(parameter);
-    printf("valore estratto: %d\n",value);
+    printf("Extracted value: %d\n",value);
     coap_set_status_code(response, CHANGED_2_04);
 
     if(value==0 && get_state()!=0 ){ // turn OFF the actuator
