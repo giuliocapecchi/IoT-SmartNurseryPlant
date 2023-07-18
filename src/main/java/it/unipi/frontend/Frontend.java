@@ -175,7 +175,7 @@ public class Frontend {
                                         System.out.println("---->Actuator disconnected! Updating table...");
                                         continue;
                                     }
-                                    // Check the answere
+                                    // Check the answer
                                     if (response != null) {
                                         clearConsole();
                                         System.out.println("---->Set. Updating table...");
