@@ -23,7 +23,7 @@ public class Mqtt_collector {
             topics.add("humidity");
             topics.add("co2");
             MqttClient mqttClient = new MqttClient(broker, clientId);
-            mqttClient.setCallback(this);
+            mqttClient.setCallback<(this);
             mqttClient.connect();
             for (String topic : topics){
                 mqttClient.subscribe(topic);
@@ -54,7 +54,7 @@ public class Mqtt_collector {
                 //System.out.println(query+"\n");
                 Database_manager.insert_executor(connection, query);
                 if(!Database_manager.close_connection(connection)) {
-                    System.out.println("Errore in chiusura connessione col database\n");
+                    System.out.println("Error closing database connection\n");
                     System.exit(1);
                 }
 

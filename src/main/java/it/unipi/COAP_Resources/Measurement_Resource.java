@@ -81,7 +81,7 @@ public class Measurement_Resource extends CoapResource {
             exchange.respond(CoAP.ResponseCode.CREATED);
 
         } catch (ParseException e) {
-            exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Errore nella richiesta JSON");
+            exchange.respond(CoAP.ResponseCode.BAD_REQUEST, "Error in JSON request");
         }
 
     }
@@ -103,7 +103,7 @@ public class Measurement_Resource extends CoapResource {
             } else {
                 return 0;
             }
-            //System.out.println("value : "+query_value);
+            
             // Chiudi il ResultSet
             try {
                 resultSet.close();
@@ -114,7 +114,7 @@ public class Measurement_Resource extends CoapResource {
             System.out.println("Empty resultset");
         }
         if(!Database_manager.close_connection(connection)) {
-            System.out.println("Errore in chiusura connessione col database\n");
+            System.out.println("Error closing database connection\n");
             System.exit(1);
         }
         return ((int) query_value);

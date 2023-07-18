@@ -13,7 +13,7 @@ public class Database_manager {
             //System.out.println("Connessione al database stabilita!");
             return connection;
         } catch (SQLException e) {
-            System.out.println("Errore durante la connessione al database: " + e.getMessage());
+            System.out.println("Error during database connection: " + e.getMessage());
             return null;
         }
     }
@@ -27,7 +27,7 @@ public class Database_manager {
             return resultSet;
 
         } catch (SQLException e) {
-            System.out.println("Errore durante l'esecuzione della query: " + e.getMessage());
+            System.out.println("Error during query execution: " + e.getMessage());
         }
         return null;
     }
@@ -39,9 +39,9 @@ public class Database_manager {
                statement.executeUpdate(query);
 
             } catch (SQLException e) {
-                System.out.println("Errore durante l'esecuzione della query: " + e.getMessage());
+                System.out.println("Error during query execution: " + e.getMessage());
             } finally {
-                // Chiudi lo Statement
+                // Close the statement
                 if (statement != null) {
                     try {
                         statement.close();
