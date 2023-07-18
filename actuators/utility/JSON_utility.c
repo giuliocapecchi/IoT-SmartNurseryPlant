@@ -16,6 +16,10 @@ int extractValueFromJSON(const char* json) {
     const char* valueStart = findSubstring(json, "\"value\":");
     if (valueStart != NULL) {
         return atoi(valueStart);
+    }else{
+        valueStart = findSubstring(json, "value:");
+        if (valueStart != NULL) 
+            return atoi(valueStart);
     }
     return 0;  // Valore predefinito se non viene trovato "value"
 }

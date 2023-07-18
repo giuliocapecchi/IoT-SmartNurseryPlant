@@ -30,6 +30,8 @@ public class Frontend {
     private static boolean exit_control_panel = false;
     private static boolean exit_control_panel_actuators = false;
     private static boolean exit_control_panel_mes = false;
+    private static String userInput = "";
+
 
     static Scanner scanner = new Scanner(System.in);
     public static void start() throws SQLException, InterruptedException {
@@ -133,6 +135,9 @@ public class Frontend {
                     Thread refreshActuatorThread = new Thread(() -> {
                         exit_control_panel_actuators = false;
                         while (!exit_control_panel_actuators) {
+                           /* if (userInput.isEmpty()) {
+                                userInput = System.console().readLine();
+                            }*/
                             clearConsole();
                             get_actuators_commands();
                             try {
@@ -158,12 +163,14 @@ public class Frontend {
                                 if (actuator >= 1 && actuator <= 3 && state >= 0 && state <= 3) {
                                     System.out.println("Setting actuator " + actuator + " to state " + state+"...");
                                     CoapResponse response;
+                                    JSONObject payload = new JSONObject();
+                                    payload.put("value",state);
                                     if(actuator==1 && co2_status!=-1){
-                                        response = client_co2.put("status="+state,MediaTypeRegistry.TEXT_PLAIN);
+                                        response = client_co2.put("status="+payload.toJSONString(),MediaTypeRegistry.APPLICATION_JSON);
                                     }else if (actuator==2 && humidity_status!=-1){
-                                        response = client_humidity.put("status="+state,MediaTypeRegistry.TEXT_PLAIN);
+                                        response = client_humidity.put("status="+payload.toJSONString(),MediaTypeRegistry.APPLICATION_JSON);
                                     }else if(actuator==3 && temperature_status!=-1){
-                                        response = client_temp.put("status="+state,MediaTypeRegistry.TEXT_PLAIN);
+                                        response = client_temp.put("status="+payload.toJSONString(),MediaTypeRegistry.APPLICATION_JSON);
                                     }else{
                                         clearConsole();
                                         System.out.println("---->Actuator disconnected! Updating table...");
@@ -234,13 +241,14 @@ public class Frontend {
         System.out.println("| 2\t| humidity\t| "+((humidity_status==-1)? "NO":"YES")+"\t\t| "+((humidity_status==-1)?"":humidity_status)+"\t|");
         System.out.println("| 3\t| temperature\t| "+((temperature_status==-1)? "NO":"YES")+"\t\t| "+((temperature_status==-1)?"":temperature_status)+"\t|");
         System.out.println("+-----------------------------------------------+");
-        System.out.print("Command->");
+        System.out.print("Command->"+userInput);
+        userInput = "";
     }
 
     private static int coapResponse(CoapClient client) {
         if(client==null)
             return -1;
-        client.setTimeout(3000);
+        client.setTimeout(2000);
         CoapResponse response = client.get();
         if(response!=null){
             byte[] payload = response.getPayload();

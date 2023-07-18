@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "os/dev/leds.h"
-
+#include "JSON_utility.h"
 
 
 static void res_get_handler(coap_message_t *request,coap_message_t *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset);
@@ -37,29 +37,29 @@ static void res_get_handler(coap_message_t *request,coap_message_t *response, ui
 
 static void res_put_handler(coap_message_t *request,coap_message_t *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
     const char *parameter = NULL;
-  if(coap_get_post_variable(request, "status", &parameter)){
-    if(strcmp(parameter,"off")==0 && get_state()!=0 ){
+  if(coap_get_post_variable(request, "status", &parameter)){ 
+                                                        
+    int value = extractValueFromJSON(parameter);
+    printf("valore estratto: %d\n",value);
+    coap_set_status_code(response, CHANGED_2_04);
+
+    if(value==0 && get_state()!=0 ){ // turn OFF the actuator
         leds_off(4);
         leds_off(8);
         leds_off(2);
-
         leds_on(1);
-        set_state(0);
-    }else if(strcmp(parameter,"on")==0 && get_state()==0 ){
-        leds_off(1);
-        set_state(2);
-    }else if(strcmp(parameter,"1")==0){ // force state to actuator
-        set_state(atoi(parameter));
+        set_state(value);
+    }else if(value==1){ // force state to actuator
+        set_state(value);
         sleep(); // function defined in the actuator, to actully show that a state was forced externally
-    }else if(strcmp(parameter,"2")==0){
-        set_state(atoi(parameter));
+    }else if(value==2){
+        set_state(value);
         sleep();
-    }else if(strcmp(parameter,"3")==0){
-        set_state(atoi(parameter));
+    }else if(value==3){
+        set_state(value);
         sleep();
     }
-
-    coap_set_status_code(response, CHANGED_2_04);
+    
   }else{
     coap_set_status_code(response, BAD_REQUEST_4_00);
   }
