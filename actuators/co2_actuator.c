@@ -102,13 +102,14 @@ void client_response_handler(coap_message_t *response) {
     leds_off(1);
     
     int value = extractValueFromJSON((char *)chunk);
+    value *= 10;
     printf("Co2_value: %d\n", value);
 
-    if (value > 28){
+    if (value > 400){
         // Actuator needs to be activated!
         state = 3;
         leds_management();
-    }else if(value < 18 ){
+    }else if(value < 180 ){
         // Actuator needs to be activated!
         state = 1;
         leds_management();

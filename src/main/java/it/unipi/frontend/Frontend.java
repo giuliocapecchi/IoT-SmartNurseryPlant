@@ -240,16 +240,19 @@ public class Frontend {
             return -1;
         client.setTimeout(3000);
         CoapResponse response = client.get();
-        byte[] payload = response.getPayload();
-        String payloadString = new String(payload);
-        JSONParser parser = new JSONParser();
-        try {
-            JSONObject jsonPayload = (JSONObject) parser.parse(new String(payloadString.getBytes(), StandardCharsets.UTF_8));
-            Long value_long = (Long) jsonPayload.get("value");
-            return value_long.intValue();
-        } catch (ParseException e) {
-            System.out.println("Error parsing JSON");
+        if(response!=null){
+            byte[] payload = response.getPayload();
+            String payloadString = new String(payload);
+            JSONParser parser = new JSONParser();
+            try {
+                JSONObject jsonPayload = (JSONObject) parser.parse(new String(payloadString.getBytes(), StandardCharsets.UTF_8));
+                Long value_long = (Long) jsonPayload.get("value");
+                return value_long.intValue();
+            } catch (ParseException e) {
+                System.out.println("Error parsing JSON");
+            }
         }
+
         return -1;
     }
 
