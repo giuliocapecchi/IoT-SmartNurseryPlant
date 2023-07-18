@@ -218,7 +218,7 @@ public class Frontend {
 
     private static void get_actuators_commands(){
         System.out.println("ACTUATORS MANAGEMENT MENU");
-        System.out.println("Send a command with this format : 'actuator_number command'. Avaiable commands are: 0: off state, 1: force into state 1, 2: force into state 2, 3: force into state 3. Type 'q' to exit this menu.");
+        System.out.println("Send a command with this format : 'ACTUATOR_ID STATE'. Avaiable commands are: 0: off state, 1: force into state 1, 2: force into state 2, 3: force into state 3. Type 'q' to exit this menu.");
 
         int co2_status = coapResponse(client_co2);
         int humidity_status = coapResponse(client_humidity);
