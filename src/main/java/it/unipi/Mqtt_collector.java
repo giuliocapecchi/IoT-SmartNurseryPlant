@@ -54,7 +54,7 @@ public class Mqtt_collector {
                 //System.out.println(query+"\n");
                 Database_manager.insert_executor(connection, query);
                 if(!Database_manager.close_connection(connection)) {
-                    System.out.println("Errore in chiusura connessione col database\n");
+                    System.out.println("Error in closing connection with the database\n");
                     System.exit(1);
                 }
 

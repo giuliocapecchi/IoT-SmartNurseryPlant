@@ -34,6 +34,7 @@ public class MyServer extends CoapServer {
         server.add(new Measurement_Resource("humidity"));
         server.add(new Measurement_Resource("co2"));
         System.out.println("COAP server started\n");
+        // Only to not mess up the command line interface
         Logger californiumLogger = Logger.getLogger("org.eclipse.californium");
         californiumLogger.setLevel(Level.SEVERE);
         server.start();
@@ -42,7 +43,7 @@ public class MyServer extends CoapServer {
         Thread actuatorThread = new Thread(new Actuators_controller.Control_Loop());
         actuatorThread.start();
 
-        // Start Command Line Interface (to be implemented)
+        // Start Command Line Interface
         Thread cliThread = new Thread(() -> {
             try {
                 Frontend.start();
