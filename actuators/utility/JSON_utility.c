@@ -21,5 +21,5 @@ int extractValueFromJSON(const char* json) {
         if (valueStart != NULL) 
             return atoi(valueStart);
     }
-    return 0;  // Valore predefinito se non viene trovato "value"
+    return 0;  // Predefined value if "value" string is not found
 }
