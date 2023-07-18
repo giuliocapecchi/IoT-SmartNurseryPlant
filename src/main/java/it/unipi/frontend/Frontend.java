@@ -39,7 +39,7 @@ public class Frontend {
         Logger.getLogger(Desktop.class.getName()).setLevel(Level.OFF);
         System.out.println("Welcome into Smart Plant Nursery application.");
         while (true) {
-            // Stampa il menu
+            // Print the menu
             if (!Objects.equals(command, "1")) {
                 System.out.println("Choose an option:");
                 System.out.println("1. Help");
@@ -51,11 +51,11 @@ public class Frontend {
             }
 
 
-            // Leggi l'input dell'utente
+            //Read input from user
             System.out.print("Input->");
             command = scanner.nextLine();
 
-            // Esegui l'azione corrispondente al comando inserito
+            // Execute the action relative to the command inserted
             switch (command) {
                 case "1":
                     clearConsole();
@@ -175,7 +175,7 @@ public class Frontend {
                                         System.out.println("---->Actuator disconnected! Updating table...");
                                         continue;
                                     }
-                                    // Controlla la risposta
+                                    // Check the answer
                                     if (response != null) {
                                         clearConsole();
                                         System.out.println("---->Set. Updating table...");

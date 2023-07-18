@@ -64,7 +64,6 @@ public class Actuators_controller {
                     /*   IP     TOPIC    STATE   TIMESTAMP */
                     Connection connection = Database_manager.db_connection();
                     String query = "INSERT INTO iotproject.actuators (ip, topic, state) VALUES ('"+ip_client+"','"+t+"',"+value+");";
-                    //System.out.println("query:"+query);
                     assert connection != null;
                     Database_manager.insert_executor(connection, query);
                     if(!Database_manager.close_connection(connection)) {
