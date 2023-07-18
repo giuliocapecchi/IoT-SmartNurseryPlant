@@ -94,7 +94,7 @@ char broker_address[CONFIG_IP_ADDR_STR_LEN];
 /*------------------------------------------------------*/
 // SIMULATION OF TEMPERATURE 
 
-// random starting temperature between 0 and 4 degrees
+// random starting temperature value between 0 and 4 degrees
 static uint8_t actual_temperature;
 // optimal temperature value between 18 and 28 degrees
 static uint8_t lower_bound_temperature = 18;

@@ -92,11 +92,11 @@ mqtt_status_t status;
 char broker_address[CONFIG_IP_ADDR_STR_LEN];
 
 /*------------------------------------------------------*/
-// SIMULATION OF CARBON DIOXID 
+// SIMULATION OF CARBON DIOXIDE 
 
-// random starting co2 between 0 and 600 ppm
+// random starting co2 value between 0 and 600 ppm
 static uint8_t actual_co2;
-// optimal carbon dioxid value between 180ppm and 400ppm
+// optimal carbon dioxide value between 180ppm and 400ppm
 // the values are /10 because of uint8_t
 static uint8_t lower_bound_co2 = 18;
 static uint8_t upper_bound_co2 = 40;

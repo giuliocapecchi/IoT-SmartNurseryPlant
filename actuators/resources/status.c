@@ -15,7 +15,7 @@ extern void set_state(int value);
 extern void sleep();
 
 RESOURCE(res_actuator,
-         "title=\"Actuator Resource: ?len=0..\";rt=\"Text\"",
+         "title=\"Actuator Resource: Control System Actuator\";rt=\"Text",
          res_get_handler, // GET Handler
          NULL,            // POST Handler
          res_put_handler, // PUT Handler
@@ -30,7 +30,7 @@ static void res_get_handler(coap_message_t *request,coap_message_t *response, ui
 
     int length = strlen((char*)buffer);
 
-    coap_set_header_content_format(response, APPLICATION_JSON); /* text_plain is the default, could be omitted */
+    coap_set_header_content_format(response, APPLICATION_JSON);
     coap_set_header_etag(response, (uint8_t *)&length, 1);
     coap_set_payload(response,buffer,length);
 }
@@ -40,7 +40,7 @@ static void res_put_handler(coap_message_t *request,coap_message_t *response, ui
   if(coap_get_post_variable(request, "status", &parameter)){ 
                                                         
     int value = extractValueFromJSON(parameter);
-    printf("valore estratto: %d\n",value);
+    printf("Extracted value: %d\n",value);
     coap_set_status_code(response, CHANGED_2_04);
 
     if(value==0 && get_state()!=0 ){ // turn OFF the actuator

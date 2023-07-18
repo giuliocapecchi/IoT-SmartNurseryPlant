@@ -94,7 +94,7 @@ char broker_address[CONFIG_IP_ADDR_STR_LEN];
 /*------------------------------------------------------*/
 // SIMULATION OF HUMIDITY 
 
-// random starting humidity between 0 and 4 degrees
+// random starting humidity value between 0 and 4 degrees
 static uint8_t actual_humidity;
 // optimal relative humidity value between 35% and 60%
 static uint8_t lower_bound_humidity = 35;
