@@ -60,7 +60,9 @@ public class Frontend {
                             "1. Help: Show this menu\n2. Show which sensors and actuators are " +
                             "connected to the system and their status\n3. Shows a list of latest measurement values for " +
                             "each sensor\n4. Show a submenu with the state of the actuator and handle their behaviour\n" +
-                            "5. Open the default browser on the Grafana page for this system.\n6. Exit from this application");
+                            "5. Open the default browser on the Grafana page for this system.\n6. Exit from this application" +
+                            "\n+-----------------------------------------------+");
+
                     break;
                 case "2":
                     clearConsole();
