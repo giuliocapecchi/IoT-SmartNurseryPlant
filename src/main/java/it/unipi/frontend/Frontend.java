@@ -7,8 +7,8 @@ import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
 import java.awt.*;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
@@ -18,22 +18,19 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Objects;
 import java.util.Scanner;
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import static it.unipi.Actuators_controller.*;
 import static it.unipi.MyServer.setExit;
+
 
 public class Frontend {
     private static boolean exit_control_panel = false;
     private static boolean exit_control_panel_actuators = false;
     private static boolean exit_control_panel_mes = false;
-    private static String userInput = "";
-
 
     static Scanner scanner = new Scanner(System.in);
-    public static void start() throws SQLException, InterruptedException {
+    public static void start() throws SQLException, InterruptedException, IOException {
         String command= null;
         clearConsole();
         Logger.getLogger(Desktop.class.getName()).setLevel(Level.OFF);
@@ -130,17 +127,13 @@ public class Frontend {
                     }
                     break;
                 case "4":
-                    exit_control_panel_actuators = false;
+                    clearConsole();
                     Thread refreshActuatorThread = new Thread(() -> {
                         exit_control_panel_actuators = false;
                         while (!exit_control_panel_actuators) {
-                           /* if (userInput.isEmpty()) {
-                                userInput = System.console().readLine();
-                            }*/
-                            clearConsole();
                             get_actuators_commands();
                             try {
-                                Thread.sleep(5000);
+                                Thread.sleep(8000);
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
@@ -149,8 +142,10 @@ public class Frontend {
                     refreshActuatorThread.start();
 
                     while (true) {
+
                         String input = scanner.nextLine();
                         String[] commands = input.split(" ");
+
                         if (commands.length == 2) {
                             try {
                                 int actuator = Integer.parseInt(commands[0]);
@@ -209,7 +204,7 @@ public class Frontend {
                     } catch (IOException | URISyntaxException e) {
                         System.out.println("Failed to open browser.");
                     }
-                    Thread.sleep(2000);
+                    Thread.sleep(4000);
                     clearConsole();
                     break;
                 case "6":
@@ -225,13 +220,14 @@ public class Frontend {
     }
 
     private static void get_actuators_commands(){
+        clearConsole();
+
         System.out.println("ACTUATORS MANAGEMENT MENU");
         System.out.println("Send a command with this format : 'ACTUATOR_ID STATE'. Avaiable commands are: 0: off state, 1: force into state 1, 2: force into state 2, 3: force into state 3. Type 'q' to exit this menu.");
 
         int co2_status = coapResponse(client_co2);
         int humidity_status = coapResponse(client_humidity);
         int temperature_status = coapResponse(client_temp);
-
 
         System.out.println("+-----------------------------------------------+");
         System.out.println("| ID\t| ACTUATOR\t| CONNECTED\t|STATE\t|");
@@ -240,9 +236,12 @@ public class Frontend {
         System.out.println("| 2\t| humidity\t| "+((humidity_status==-1)? "NO":"YES")+"\t\t| "+((humidity_status==-1)?"":humidity_status)+"\t|");
         System.out.println("| 3\t| temperature\t| "+((temperature_status==-1)? "NO":"YES")+"\t\t| "+((temperature_status==-1)?"":temperature_status)+"\t|");
         System.out.println("+-----------------------------------------------+");
-        System.out.print("Command->"+userInput);
-        userInput = "";
+        System.out.print("Command->");
     }
+
+
+
+
 
     private static int coapResponse(CoapClient client) {
         if(client==null)
