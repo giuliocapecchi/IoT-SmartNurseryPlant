@@ -187,6 +187,7 @@ public class Frontend {
                                 }
                             } catch (NumberFormatException e) {
                                 System.out.println("Invalid input format.");
+                                System.out.print("Command->");
                             }
                         } else if (input.equalsIgnoreCase("q")) {
                             exit_control_panel_actuators = true;
