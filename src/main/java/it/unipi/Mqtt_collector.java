@@ -23,7 +23,7 @@ public class Mqtt_collector {
             topics.add("humidity");
             topics.add("co2");
             MqttClient mqttClient = new MqttClient(broker, clientId);
-            mqttClient.setCallback<(this);
+            mqttClient.setCallback(this);
             mqttClient.connect();
             for (String topic : topics){
                 mqttClient.subscribe(topic);
