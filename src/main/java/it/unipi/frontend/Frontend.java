@@ -207,7 +207,7 @@ public class Frontend {
                     } catch (IOException | URISyntaxException e) {
                         System.out.println("Failed to open browser.");
                     }
-                    Thread.sleep(4000);
+                    Thread.sleep(6000);
                     clearConsole();
                     break;
                 case "6":
