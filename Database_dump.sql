@@ -23,7 +23,7 @@ DROP TABLE IF EXISTS `actuators`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `actuators` (
-  `ip` varchar(255) DEFAULT NULL,
+  `uri` varchar(255) DEFAULT NULL,
   `topic` varchar(255) DEFAULT NULL,
   `state` varchar(50) DEFAULT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
