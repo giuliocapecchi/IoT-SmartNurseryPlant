@@ -35,7 +35,7 @@ public class MyServer extends CoapServer {
         server.add(new Measurement_Resource("temperature"));
         server.add(new Measurement_Resource("humidity"));
         server.add(new Measurement_Resource("co2"));
-        server.add(new Registration_Resource("Registration"));
+        server.add(new Registration_Resource("registration"));
         System.out.println("COAP server started\n");
         // Only to not mess up the command line interface
         Logger californiumLogger = Logger.getLogger("org.eclipse.californium");

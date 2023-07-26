@@ -42,7 +42,7 @@ public class Actuators_controller {
                 if(response==null) // no get method has been called
                     continue;
 
-                byte[] payload = response.getPayload();
+                    byte[] payload = response.getPayload();
                 if (payload==null)
                     continue;
                 String payloadString = new String(payload);
