@@ -68,8 +68,13 @@ void leds_management(){
 
 void set_state(int value){
     etimer_reset(&et3);
+    if(controlled) 
+        printf("controlled=true!");
+    else 
+        printf("controlled = false!");
     if(controlled)
         return;
+    printf("dopo la return");
     state = value;
     leds_management();
 }
