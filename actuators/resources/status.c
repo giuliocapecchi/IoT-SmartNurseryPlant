@@ -62,12 +62,14 @@ static void res_put_handler(coap_message_t *request,coap_message_t *response, ui
         set_state(value);
         if(forced == 1)
           sleep(); // function defined in the actuator, to actully show that a state was forced externally
-    }else if(value==2 && forced == 1){
+    }else if(value==2){
         set_state(value);
-        sleep();
-    }else if(value==3 && forced == 1){
+        if(forced == 1)
+          sleep();
+    }else if(value==3){
         set_state(value);
-        sleep();
+        if(forced == 1)
+          sleep();
     }
   
   

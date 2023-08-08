@@ -121,7 +121,7 @@ public class Actuators_controller {
                     throw new RuntimeException(e);
                 }
                 try {
-                    Thread.sleep(10000);
+                    Thread.sleep(7000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

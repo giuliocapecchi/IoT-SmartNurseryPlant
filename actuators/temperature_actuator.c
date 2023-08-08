@@ -67,8 +67,10 @@ void leds_management(){
 }
 
 void set_state(int value){
-    state = value;
     etimer_reset(&et3);
+    if(controlled)
+        return;
+    state = value;
     leds_management();
 }
 
@@ -88,9 +90,9 @@ void client_response_handler(coap_message_t *response) {
     registered=true;
     leds_management();
     printf("Registered!\n");
-    etimer_set(&et3, 20*CLOCK_SECOND );
+    etimer_set(&et3, 30*CLOCK_SECOND );
     int len=coap_get_payload(response, &chunk);
-    printf("|%.*s", len, (char *)chunk);
+    printf("%.*s", len, (char *)chunk);
     leds_off(1);
     
 }
@@ -142,6 +144,7 @@ PROCESS_THREAD(temperature_actuator, ev, data){
 
         if(ev==button_hal_press_event){
             
+            controlled = true;
             state = (state+1)%4;
             if(state==0)
                 state++;
@@ -153,6 +156,7 @@ PROCESS_THREAD(temperature_actuator, ev, data){
             leds_management();
             // stop et2 in case the button was pressed.
             etimer_stop(&et2);
+            controlled = false;
             
         }
 
@@ -161,6 +165,7 @@ PROCESS_THREAD(temperature_actuator, ev, data){
             btn = (button_hal_button_t *)data;
             if(btn->press_duration_seconds > 5) {
                 state = 0;
+                controlled = true;
                 leds_management();
             } 
         }
