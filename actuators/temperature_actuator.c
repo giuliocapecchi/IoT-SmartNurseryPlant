@@ -19,12 +19,13 @@
 
 // server IP and resource path
 #define SERVER_EP "coap://[fd00::1]:5683"
-char *service_url = "/temperature";
+char *service_url = "/registration";
 
 extern coap_resource_t res_actuator;
 
 static struct etimer et;
 static struct etimer et2;
+static struct etimer et3;
 
 // state == 2 : non dangerous values received
 // state == 1 || 3 : danger zone, actuator needs to be turned on 
@@ -36,10 +37,6 @@ static bool registered = false;
 
 int get_state() {
     return state;
-}
-
-void set_state(int value){
-    state = value;
 }
 
 void leds_management(){
@@ -69,20 +66,15 @@ void leds_management(){
     }
 }
 
+void set_state(int value){
+    state = value;
+    etimer_reset(&et3);
+    leds_management();
+}
+
 void sleep(){ //used in the resource when forcing a state
-    leds_off(4);
-    leds_off(8);
-    leds_off(2);
-    
+    leds_management();
     leds_on(1);
-    if(state==1){
-        leds_on(8); //blue
-    }else if(state==2){
-        leds_on(4); //green
-    }else if(state==3){
-        leds_on(2); //red
-    }
-    
     controlled = true;    
 }
 
@@ -92,27 +84,15 @@ void client_response_handler(coap_message_t *response) {
         printf("Request timed out, server is unrecheable\n");
         // server is unreacheable, go back in off state.
         return;
-    }else{
-        registered=true;
     }
+    registered=true;
+    leds_management();
+    printf("Registered!\n");
+    etimer_set(&et3, 20*CLOCK_SECOND );
     int len=coap_get_payload(response, &chunk);
     printf("|%.*s", len, (char *)chunk);
     leds_off(1);
     
-    /*int value = extractValueFromJSON((char *)chunk);
-    printf("Temperature_value: %d\n", value);
-    if (value > 28){
-        // Actuator needs to be activated!
-        state = 3;
-        leds_management();
-    }else if(value < 18 ){
-        // Actuator needs to be activated!
-        state = 1;
-        leds_management();
-    }else{
-        state = 2;
-        leds_management();
-    }*/
 }
 
 /* Declare and auto-start this file's process */
@@ -136,19 +116,30 @@ PROCESS_THREAD(temperature_actuator, ev, data){
     leds_on(1);
     btn = button_hal_get_by_index(0);
 
-    while(!registered){
-        coap_init_message(request, COAP_TYPE_CON, COAP_GET, 0);
-        coap_set_header_uri_path(request, service_url);
-        char msg[50];
-        sprintf(msg, "{\"topic\":\"temperature\", \"value\":%d}", state);
-        coap_set_payload(request, (uint8_t *)msg, sizeof(msg) - 1);
-        COAP_BLOCKING_REQUEST(&server_ep, request, client_response_handler);
-    }
+    
     coap_activate_resource(&res_actuator, "temperature_actuator");
 
     while (1){
 
+        while(!registered){
+        coap_init_message(request, COAP_TYPE_CON, COAP_POST, 0);
+        coap_set_header_uri_path(request, service_url);
+        char msg[50];
+        sprintf(msg, "{\"topic\":\"temperature\", \"value\":%d}", state);
+                    
+        printf("msg : %s\n",msg);
+        coap_set_payload(request, (uint8_t *)msg, strlen(msg));
+        COAP_BLOCKING_REQUEST(&server_ep, request, client_response_handler);
+        }
+
         PROCESS_YIELD();
+
+        if(etimer_expired(&et3)){
+            // no get requests from server for more than 2 minutes
+            printf("Server disconnected! Registering again...\n");
+            registered = false;
+        }
+
         if(ev==button_hal_press_event){
             
             state = (state+1)%4;

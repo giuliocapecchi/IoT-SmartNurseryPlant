@@ -14,6 +14,7 @@ extern int get_state();
 extern void set_state(int value);
 extern void sleep();
 
+
 RESOURCE(res_actuator,
          "title=\"Actuator Resource: Control System Actuator\";rt=\"Text",
          res_get_handler, // GET Handler
@@ -36,11 +37,19 @@ static void res_get_handler(coap_message_t *request,coap_message_t *response, ui
 }
 
 static void res_put_handler(coap_message_t *request,coap_message_t *response, uint8_t *buffer, uint16_t preferred_size, int32_t *offset){
-    const char *parameter = NULL;
-  if(coap_get_post_variable(request, "status", &parameter)){ 
-                                                        
-    int value = extractValueFromJSON(parameter);
-    printf("Extracted value: %d\n",value);
+     
+  const uint8_t *payload = NULL;
+  int payload_len = coap_get_payload(request, &payload);
+  const char* json = (const char*)payload;
+
+  if (payload_len > 0 && payload != NULL) {
+
+    int value = extractValueFromJSON(json, "value");
+
+    int forced = extractValueFromJSON(json, "forced");
+
+    printf("Extracted values: value->%d , forced->%d\n",value,forced);
+
     coap_set_status_code(response, CHANGED_2_04);
 
     if(value==0 && get_state()!=0 ){ // turn OFF the actuator
@@ -51,16 +60,19 @@ static void res_put_handler(coap_message_t *request,coap_message_t *response, ui
         set_state(value);
     }else if(value==1){ // force state to actuator
         set_state(value);
-        sleep(); // function defined in the actuator, to actully show that a state was forced externally
-    }else if(value==2){
+        if(forced == 1)
+          sleep(); // function defined in the actuator, to actully show that a state was forced externally
+    }else if(value==2 && forced == 1){
         set_state(value);
         sleep();
-    }else if(value==3){
+    }else if(value==3 && forced == 1){
         set_state(value);
         sleep();
     }
-    
+  
+  
   }else{
     coap_set_status_code(response, BAD_REQUEST_4_00);
   }
+  
 }

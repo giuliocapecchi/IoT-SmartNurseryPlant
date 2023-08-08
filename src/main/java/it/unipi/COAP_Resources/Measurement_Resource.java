@@ -35,32 +35,7 @@ public class Measurement_Resource extends CoapResource {
         super(name);
         setObservable(true);
     }
-    public void handleGET(CoapExchange exchange) {
-        JSONObject jsonObject = new JSONObject();
-        if(Objects.equals(this.getName(), "co2")){
-            value=value/10;
-        }
-        jsonObject.put("value", value);
-        exchange.respond(CoAP.ResponseCode.CONTENT,jsonObject.toJSONString(), MediaTypeRegistry.APPLICATION_JSON);
-        if(Objects.equals(this.getName(), "co2")){
-            value=value*10;
-        }
-        InetAddress address = exchange.getSourceAddress();
-        String ip_address_client = address.getHostAddress();
-        //System.out.println("Indirizzo IP_client su GET : " + address.getHostAddress());
 
-        if(Objects.equals(this.getName(), "temperature")){
-            Actuators_controller.client_temp = new CoapClient("coap://["+ip_address_client+"]/"+ this.getName()+"_actuator");
-            Actuators_controller.new_client_temp = true;
-        }else if(Objects.equals(this.getName(), "co2")){
-            Actuators_controller.client_co2 = new CoapClient("coap://["+ip_address_client+"]/"+ this.getName()+"_actuator");
-            Actuators_controller.new_client_co2 = true;
-        }else if(Objects.equals(this.getName(), "humidity")){
-            Actuators_controller.client_humidity = new CoapClient("coap://["+ip_address_client+"]/"+ this.getName()+"_actuator");
-            Actuators_controller.new_client_humidity = true;
-        }
-
-    }
 
     public void handlePUT(CoapExchange exchange) {
         //method called by the Collector to update the resource state

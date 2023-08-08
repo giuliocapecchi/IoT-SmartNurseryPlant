@@ -12,14 +12,21 @@ char* findSubstring(const char* str, const char* substr) {
 }
 
 // Extract Value from JSON
-int extractValueFromJSON(const char* json) {
-    const char* valueStart = findSubstring(json, "\"value\":");
+int extractValueFromJSON(const char* json, const char* key) {
+    char buf[100];
+    strcpy(buf, "\"");
+    strcat(buf,key);
+    strcat(buf,"\":");
+    const char* valueStart = findSubstring(json,buf);
     if (valueStart != NULL) {
         return atoi(valueStart);
     }else{
-        valueStart = findSubstring(json, "value:");
+        char buf[100];
+        strcpy(buf, key);
+        strcat(buf,":");
+        valueStart = findSubstring(json, buf);
         if (valueStart != NULL) 
             return atoi(valueStart);
     }
-    return 0;  // Predefined value if "value" string is not found
+    return 0;  // Predefined value if "buf" string is not found
 }

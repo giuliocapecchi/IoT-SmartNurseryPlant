@@ -34,7 +34,7 @@ public class Frontend {
         String command= null;
         clearConsole();
         Logger.getLogger(Desktop.class.getName()).setLevel(Level.OFF);
-        System.out.println("Welcome into Smart Plant Nursery application.");
+        System.out.println("Welcome into Smart Plant Nursery application");
         while (true) {
             // Print the menu
             if (!Objects.equals(command, "1")) {
