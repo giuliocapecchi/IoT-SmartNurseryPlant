@@ -84,7 +84,6 @@ void sleep(){ //used in the resource when forcing a state
     controlled = true;   
     etimer_set(&et, 5*CLOCK_SECOND);
 //////
-    
 }
 
 void client_response_handler(coap_message_t *response) {
@@ -108,6 +107,7 @@ void client_response_handler(coap_message_t *response) {
 PROCESS(temperature_actuator, "CoAP Temperature Actuator");
 AUTOSTART_PROCESSES(&temperature_actuator);
 
+
 // The client includes two data structures
 // coap_endpoint_t -> represents an endpoint
 // coap_message_t -> represent the message
@@ -116,6 +116,7 @@ PROCESS_THREAD(temperature_actuator, ev, data){
     button_hal_button_t *btn;
     static coap_endpoint_t server_ep;
     static coap_message_t request[1]; /* This way the packet can be treated as pointer as usual. */
+
 
     PROCESS_BEGIN();
 
