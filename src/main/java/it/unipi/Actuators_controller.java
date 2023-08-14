@@ -24,7 +24,7 @@ public class Actuators_controller {
 
     static Connection connection;
 
-    public static void getValues() throws SQLException {
+    public static void getValues() throws SQLException, ParseException {
         connection = Database_manager.db_connection();
         ArrayList<String> topics=new ArrayList<>();
         topics.add("temperature");
@@ -34,21 +34,70 @@ public class Actuators_controller {
             String query = "SELECT value FROM iotproject.sensors WHERE topic = '"+t+"' ORDER BY timestamp DESC LIMIT 1;";
             assert connection != null;
             ResultSet resultSet = Database_manager.query_executor(connection, query);
+            CoapResponse response = null;
+            String uri = null;
             if(resultSet != null) {
                 resultSet.next();
                 float value =  resultSet.getFloat("value");
-                System.out.println("valore ottenuto : " +value);
 
                 if(Objects.equals(t, "temperature")){
                     temperature_control(value);
+                    if(client_temp!=null){
+                        response = client_temp.get();
+                        if(response!=null) {
+                            uri = client_temp.getURI();
+                        }else{
+                            client_temp = null;
+                            continue;
+                        }
+                    }else{
+                        continue;
+                    }
                 }else if(Objects.equals(t, "co2")){
                     co2_control(value);
+                    if(client_co2!=null){
+                        response = client_co2.get();
+                        if(response!=null) {
+                            uri = client_co2.getURI();
+                        }else{
+                            client_co2 = null;
+                            continue;
+                        }
+                    }else{
+                        continue;
+                    }
                 }else if(Objects.equals(t, "humidity")){
                     humidity_control(value);
+                    if(client_humidity!=null) {
+                        response = client_humidity.get();
+                        if (response != null) {
+                            uri = client_humidity.getURI();
+                        } else {
+                            client_humidity = null;
+                            continue;
+                        }
+                    }else{
+                        continue;
+                    }
                 }
 
-            }
+                int startIndex = uri.indexOf("[") + 1;
+                int endIndex = uri.indexOf("]");
+                String ip = uri.substring(startIndex, endIndex);
 
+                byte[] payload = response.getPayload();
+                if (payload==null)
+                    continue;
+                String payloadString = new String(payload);
+                JSONParser parser = new JSONParser();
+                JSONObject jsonPayload = (JSONObject) parser.parse(new String(payloadString.getBytes(), StandardCharsets.UTF_8));
+                Long value_long = (Long) jsonPayload.get("value");
+                int state = value_long.intValue();
+
+                query= "INSERT into iotproject.actuators (ip, topic, state) VALUES ('"+ip+"', '"+t+"', "+ state +");";
+                Database_manager.insert_executor(connection,query);
+
+            }
         }
 
         if(!Database_manager.close_connection(connection)) {
@@ -73,18 +122,8 @@ public class Actuators_controller {
         payload.put("value",state);
         if(client_temp!= null){
             response = client_temp.put(payload.toJSONString(), MediaTypeRegistry.APPLICATION_JSON);
-            System.out.println("fatto put all' actuator");
-            if(response!=null){
-                String uri = client_temp.getURI();
-                int startIndex = uri.indexOf("[") + 1;
-                int endIndex = uri.indexOf("]");
-                String ip = uri.substring(startIndex, endIndex);
-                String query= "INSERT into iotproject.actuators (ip, topic, state) VALUES ('"+ip+"', 'temperature', "+ state +");";
-                System.out.println(query);
-                Database_manager.insert_executor(connection,query);
-            }else{
+            if(response==null)
                 client_temp = null;
-            }
         }
 
     }
@@ -117,7 +156,7 @@ public class Actuators_controller {
             while (true) {
                 try {
                     getValues();
-                } catch (SQLException e) {
+                } catch (SQLException | ParseException e) {
                     throw new RuntimeException(e);
                 }
                 try {

@@ -33,6 +33,7 @@ static struct etimer et3;
 static int state = 2 ;
 static bool controlled = false;
 static bool registered = false;
+static bool off = false;
 
 
 int get_state() {
@@ -67,22 +68,23 @@ void leds_management(){
 }
 
 void set_state(int value){
+    printf("sono nella set state\n");
     etimer_reset(&et3);
-    if(controlled) 
-        printf("controlled=true!");
-    else 
-        printf("controlled = false!");
-    if(controlled)
-        return;
-    printf("dopo la return");
-    state = value;
-    leds_management();
+    if(!controlled && !off){   
+        printf("sono nell if della set state\n");
+        state = value;
+        leds_management();
+    }
 }
 
 void sleep(){ //used in the resource when forcing a state
     leds_management();
     leds_on(1);
-    controlled = true;    
+    printf("sono nella sleep!\n");
+    controlled = true;   
+    etimer_set(&et, 5*CLOCK_SECOND);
+//////
+    
 }
 
 void client_response_handler(coap_message_t *response) {
@@ -139,7 +141,10 @@ PROCESS_THREAD(temperature_actuator, ev, data){
         COAP_BLOCKING_REQUEST(&server_ep, request, client_response_handler);
         }
 
-        PROCESS_YIELD();
+
+      //  PROCESS_WAIT_EVENT_UNTIL( (ev == PROCESS_EVENT_TIMER) || (ev == button_hal_press_event ) || (ev == button_hal_periodic_event));
+        PROCESS_WAIT_EVENT();
+        printf("dopo process yield\n");
 
         if(etimer_expired(&et3)){
             // no get requests from server for more than 2 minutes
@@ -147,7 +152,7 @@ PROCESS_THREAD(temperature_actuator, ev, data){
             registered = false;
         }
 
-        if(ev==button_hal_press_event){
+        if(ev==button_hal_press_event && off == false){
             
             controlled = true;
             state = (state+1)%4;
@@ -166,20 +171,35 @@ PROCESS_THREAD(temperature_actuator, ev, data){
         }
 
         if(ev == button_hal_periodic_event){
-            printf("long button pressed!\n");
             btn = (button_hal_button_t *)data;
             if(btn->press_duration_seconds > 5) {
-                state = 0;
-                controlled = true;
+                printf("long button pressed!\n");
+                off = (!off);
+                if(off){
+                   state = 0;
+                    printf("off = true\n");
+                }else{
+                    state = 2;
+                    printf("off = false\n");
+                } 
                 leds_management();
+                btn->press_duration_seconds = 0;
             } 
         }
+        
+         if(etimer_expired(&et)){
+            // 
+            printf("Test!!!!\n");
+        } 
 
-        if(controlled){
-            etimer_set(&et,15*CLOCK_SECOND);
+        if(controlled == true){
+            printf("sono in attesa...\n");
+            etimer_set(&et,5*CLOCK_SECOND);
             PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
+            printf("fine attesa...\n");
             controlled = false;
         }
+        
     }
     PROCESS_END();
 }

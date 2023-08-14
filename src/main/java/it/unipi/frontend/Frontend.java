@@ -161,12 +161,13 @@ public class Frontend {
                                     CoapResponse response;
                                     JSONObject payload = new JSONObject();
                                     payload.put("value",state);
+                                    payload.put("forced",1);
                                     if(actuator==1 && co2_status!=-1){
-                                        response = client_co2.put("status="+payload.toJSONString(),MediaTypeRegistry.APPLICATION_JSON);
+                                        response = client_co2.put(payload.toJSONString(),MediaTypeRegistry.APPLICATION_JSON);
                                     }else if (actuator==2 && humidity_status!=-1){
-                                        response = client_humidity.put("status="+payload.toJSONString(),MediaTypeRegistry.APPLICATION_JSON);
+                                        response = client_humidity.put(payload.toJSONString(),MediaTypeRegistry.APPLICATION_JSON);
                                     }else if(actuator==3 && temperature_status!=-1){
-                                        response = client_temp.put("status="+payload.toJSONString(),MediaTypeRegistry.APPLICATION_JSON);
+                                        response = client_temp.put(payload.toJSONString(),MediaTypeRegistry.APPLICATION_JSON);
                                     }else{
                                         clearConsole();
                                         System.out.println("---->Actuator disconnected! Updating table...");
