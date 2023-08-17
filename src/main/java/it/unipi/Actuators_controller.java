@@ -130,23 +130,43 @@ public class Actuators_controller {
 
     static void co2_control(float value){
 
-        if(value < 18){ // turn on heating system
-
-        }else if(value > 28){ //turn on refrigerator system
-
+        CoapResponse response;
+        JSONObject payload = new JSONObject();
+        int state;
+        payload.put("forced",0);
+        if(value < 180){ // turn on co2 regulator system to increase the value
+            state = 1;
+        }else if(value > 400){ //turn on co2 regulator system to decrease the value
+            state = 3;
         }else{ // situation is stable
-
+            state = 2;
+        }
+        payload.put("value",state);
+        if(client_co2!= null){
+            response = client_co2.put(payload.toJSONString(), MediaTypeRegistry.APPLICATION_JSON);
+            if(response==null)
+                client_co2 = null;
         }
     }
 
     static void humidity_control(float value){
 
-        if(value < 18){ // turn on heating system
-
-        }else if(value > 28){ //turn on refrigerator system
-
+       CoapResponse response;
+        JSONObject payload = new JSONObject();
+        int state;
+        payload.put("forced",0);
+        if(value < 35){ //turn on irrigator system to increase relative humidity value
+            state = 1;
+        }else if(value > 60){ //turn on irrigator system to decrease relative humidity value
+            state = 3;
         }else{ // situation is stable
-
+            state = 2;
+        }
+        payload.put("value",state);
+        if(client_humidity!= null){
+            response = client_humidity.put(payload.toJSONString(), MediaTypeRegistry.APPLICATION_JSON);
+            if(response==null)
+                client_humidity = null;
         }
     }
 
