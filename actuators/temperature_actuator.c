@@ -90,13 +90,13 @@ void client_response_handler(coap_message_t *response) {
         return;
     }
     registered=true;
+    state = 2;
     leds_management();
     printf("Registered!\n");
     etimer_set(&et3, 30*CLOCK_SECOND );
     int len=coap_get_payload(response, &chunk);
     printf("%.*s", len, (char *)chunk);
     leds_off(1);
-    
 }
 
 /* Declare and auto-start this file's process */
@@ -161,6 +161,9 @@ PROCESS_THREAD(temperature_actuator, ev, data){
             // no get requests from server for more than 2 minutes
             printf("Server disconnected! Registering again...\n");
             registered = false;
+            state = 0;
+            leds_management();
+
         }
 
         if(ev==button_hal_press_event && off == false){
