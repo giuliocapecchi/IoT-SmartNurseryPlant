@@ -34,6 +34,7 @@ static int state = 2 ;
 static bool controlled = false;
 static bool registered = false;
 static bool off = false;
+static bool server_is_online = false;
 
 
 int get_state() {
@@ -68,17 +69,17 @@ void leds_management(){
 }
 
 void set_state(int value){
-    etimer_reset(&et3);
-    if(controlled || off)
-        return;
-    state = value;
-    leds_management();
+    server_is_online = true ; 
+    if(!controlled && !off){   
+        state = value;
+        leds_management();
+    }
 }
 
 void sleep(){ //used in the resource when forcing a state
     leds_management();
     leds_on(1);
-    controlled = true;    
+    controlled = true;   
 }
 
 void client_response_handler(coap_message_t *response) {
@@ -89,27 +90,29 @@ void client_response_handler(coap_message_t *response) {
         return;
     }
     registered=true;
+    state = 2;
     leds_management();
     printf("Registered!\n");
     etimer_set(&et3, 30*CLOCK_SECOND );
     int len=coap_get_payload(response, &chunk);
     printf("%.*s", len, (char *)chunk);
     leds_off(1);
-    
 }
 
 /* Declare and auto-start this file's process */
-PROCESS(humidity_actuator, "CoAP humidity Actuator");
-AUTOSTART_PROCESSES(&humidity_actuator);
+PROCESS(irrigator, "CoAP Irrigator");
+AUTOSTART_PROCESSES(&irrigator);
+
 
 // The client includes two data structures
 // coap_endpoint_t -> represents an endpoint
 // coap_message_t -> represent the message
-PROCESS_THREAD(humidity_actuator, ev, data){
+PROCESS_THREAD(irrigator, ev, data){
     
     button_hal_button_t *btn;
     static coap_endpoint_t server_ep;
     static coap_message_t request[1]; /* This way the packet can be treated as pointer as usual. */
+
 
     PROCESS_BEGIN();
 
@@ -119,28 +122,48 @@ PROCESS_THREAD(humidity_actuator, ev, data){
     leds_on(1);
     btn = button_hal_get_by_index(0);
 
+    etimer_set(&et, 5*CLOCK_SECOND);
     
-    coap_activate_resource(&res_actuator, "humidity_actuator");
+    coap_activate_resource(&res_actuator, "irrigator_actuator");
 
     while (1){
 
         while(!registered){
-        coap_init_message(request, COAP_TYPE_CON, COAP_POST, 0);
-        coap_set_header_uri_path(request, service_url);
-        char msg[50];
-        sprintf(msg, "{\"topic\":\"humidity\", \"value\":%d}", state);
-                    
-        printf("msg : %s\n",msg);
-        coap_set_payload(request, (uint8_t *)msg, strlen(msg));
-        COAP_BLOCKING_REQUEST(&server_ep, request, client_response_handler);
+            coap_init_message(request, COAP_TYPE_CON, COAP_POST, 0);
+            coap_set_header_uri_path(request, service_url);
+            char msg[50];
+            sprintf(msg, "{\"topic\":\"humidity\", \"value\":%d}", state);
+                        
+            printf("msg : %s\n",msg);
+            coap_set_payload(request, (uint8_t *)msg, strlen(msg));
+            COAP_BLOCKING_REQUEST(&server_ep, request, client_response_handler);
+            etimer_reset(&et);
+            server_is_online = true ; 
         }
 
-        PROCESS_YIELD();
 
-        if(etimer_expired(&et3)){
+        if(off){
+            leds_on(1);
+        }
+        
+        //PROCESS_WAIT_EVENT_UNTIL( (ev == PROCESS_EVENT_TIMER) || (ev == button_hal_press_event ) || (ev == button_hal_periodic_event));
+       
+        PROCESS_WAIT_EVENT();
+        etimer_reset(&et);
+
+        if(server_is_online){
+            server_is_online = false; 
+            etimer_set(&et3, 30*CLOCK_SECOND);
+        }
+
+
+        if(etimer_expired(&et3) && !server_is_online){
             // no get requests from server for more than 2 minutes
             printf("Server disconnected! Registering again...\n");
             registered = false;
+            state = 0;
+            leds_management();
+
         }
 
         if(ev==button_hal_press_event && off == false){
@@ -158,7 +181,7 @@ PROCESS_THREAD(humidity_actuator, ev, data){
             // stop et2 in case the button was pressed.
             etimer_stop(&et2);
             controlled = false;
-            
+            etimer_reset(&et);
         }
 
         if(ev == button_hal_periodic_event){
@@ -176,13 +199,16 @@ PROCESS_THREAD(humidity_actuator, ev, data){
                 leds_management();
                 btn->press_duration_seconds = 0;
             } 
+            etimer_reset(&et);
         }
 
-        if(controlled){
-            etimer_set(&et,15*CLOCK_SECOND);
+        if(controlled == true){
+            etimer_reset(&et);
             PROCESS_WAIT_EVENT_UNTIL(etimer_expired(&et));
             controlled = false;
+            etimer_reset(&et);
         }
+        
     }
     PROCESS_END();
 }
