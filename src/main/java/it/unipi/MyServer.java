@@ -1,6 +1,5 @@
 package it.unipi;
 
-import it.unipi.COAP_Resources.Measurement_Resource;
 import it.unipi.COAP_Resources.Registration_Resource;
 import it.unipi.frontend.Frontend;
 import org.eclipse.paho.client.mqttv3.MqttException;
@@ -32,12 +31,9 @@ public class MyServer extends CoapServer {
 
         // Start the COAP server
         MyServer server = new MyServer();
-        server.add(new Measurement_Resource("temperature"));
-        server.add(new Measurement_Resource("humidity"));
-        server.add(new Measurement_Resource("co2"));
         server.add(new Registration_Resource("registration"));
         System.out.println("COAP server started\n");
-        // Only to not mess up the command line interface
+        //The following lines are only there to not mess up the command line interface
         Logger californiumLogger = Logger.getLogger("org.eclipse.californium");
         californiumLogger.setLevel(Level.SEVERE);
         server.start();
