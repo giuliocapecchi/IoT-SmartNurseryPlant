@@ -53,21 +53,19 @@ static void res_put_handler(coap_message_t *request,coap_message_t *response, ui
 
     coap_set_status_code(response, CHANGED_2_04);
 
-    if(value==0 && get_state()!=0 ){ // turn OFF the actuator
-        leds_off(4);
-        leds_off(8);
-        leds_off(2);
-        leds_on(1);
-        set_state(value);
-    }else if(value==1){ // force state to actuator
+    if(value==0 && (get_state()!=0 || forced == 1)){ // turn OFF the actuator
         set_state(value);
         if(forced == 1)
           sleep(); // function defined in the actuator, to actully show that a state was forced externally
-    }else if(value==2){
+    }else if(value==1 && (get_state()!=0 || forced == 1)){
         set_state(value);
         if(forced == 1)
           sleep();
-    }else if(value==3){
+    }else if(value==2 && (get_state()!=0 || forced == 1)){
+        set_state(value);
+        if(forced == 1)
+          sleep();
+    }else if(value==3 && (get_state()!=0 || forced == 1)){
         set_state(value);
         if(forced == 1)
           sleep();
