@@ -49,11 +49,11 @@ public class Registration_Resource extends CoapResource {
             }
 
             if(Objects.equals(topic, "temperature")){
-                Actuators_controller.client_temp = new CoapClient("coap://["+ip+"]/"+topic+"_actuator");
+                Actuators_controller.client_temp = new CoapClient("coap://["+ip+"]/conditioner_actuator");
             }else if(Objects.equals(topic, "co2")){
-                Actuators_controller.client_co2 = new CoapClient("coap://["+ip+"]/"+topic+"_actuator");
+                Actuators_controller.client_co2 = new CoapClient("coap://["+ip+"]/co2_actuator");
             }else if(Objects.equals(topic, "humidity")){
-                Actuators_controller.client_humidity = new CoapClient("coap://["+ip+"]/"+topic+"_actuator");
+                Actuators_controller.client_humidity = new CoapClient("coap://["+ip+"]/irrigator_actuator");
             }
 
             // Send a response to the client

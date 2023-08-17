@@ -93,7 +93,7 @@ void client_response_handler(coap_message_t *response) {
     state = 2;
     leds_management();
     printf("Registered!\n");
-    etimer_set(&et3, 30*CaLOCK_SECOND );
+    etimer_set(&et3, 30*CLOCK_SECOND );
     int len=coap_get_payload(response, &chunk);
     printf("%.*s", len, (char *)chunk);
     leds_off(1);
@@ -132,7 +132,7 @@ PROCESS_THREAD(conditioner, ev, data){
             coap_init_message(request, COAP_TYPE_CON, COAP_POST, 0);
             coap_set_header_uri_path(request, service_url);
             char msg[50];
-            sprintf(msg, "{\"topic\":\"conditioner\", \"value\":%d}", state);
+            sprintf(msg, "{\"topic\":\"temperature\", \"value\":%d}", state);
                         
             printf("msg : %s\n",msg);
             coap_set_payload(request, (uint8_t *)msg, strlen(msg));
