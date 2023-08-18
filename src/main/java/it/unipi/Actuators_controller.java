@@ -24,7 +24,7 @@ public class Actuators_controller {
 
     static Connection connection;
 
-    public static void getValues() throws SQLException, ParseException {
+    public static void actuatorsStateManager() throws SQLException, ParseException {
         connection = Database_manager.db_connection();
         ArrayList<String> topics=new ArrayList<>();
         topics.add("temperature");
@@ -175,7 +175,7 @@ public class Actuators_controller {
         public void run() {
             while (true) {
                 try {
-                    getValues();
+                    actuatorsStateManager();
                 } catch (SQLException | ParseException e) {
                     throw new RuntimeException(e);
                 }
